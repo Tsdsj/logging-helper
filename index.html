@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>日志分析助手</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>日志分析助手</h1>
+      <p class="subtitle">上传日志文件，查看错误频次与趋势</p>
+
+      <section class="card">
+        <label for="logFile">选择日志文件</label>
+        <input id="logFile" type="file" accept=".log,.txt,.out,.text" />
+        <button id="analyzeBtn" type="button">开始分析</button>
+        <p id="status" class="status">等待上传文件</p>
+      </section>
+
+      <section class="grid">
+        <div class="card metric">
+          <span class="metric-title">总行数</span>
+          <strong id="totalLines">0</strong>
+        </div>
+        <div class="card metric">
+          <span class="metric-title">错误行数</span>
+          <strong id="errorLines">0</strong>
+        </div>
+        <div class="card metric">
+          <span class="metric-title">错误率</span>
+          <strong id="errorRate">0%</strong>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>错误频次（Top 10）</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>错误类型</th>
+              <th>次数</th>
+            </tr>
+          </thead>
+          <tbody id="freqTableBody">
+            <tr>
+              <td colspan="2" class="muted">暂无数据</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>错误趋势（按小时）</h2>
+        <div id="trendChart" class="trend-chart">
+          <p class="muted">暂无数据</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
