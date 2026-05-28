@@ -10,7 +10,8 @@ const trendChart = document.getElementById("trendChart");
 
 const ERROR_KEYWORD = /\b(ERROR|FATAL)\b/i;
 const TS_REGEX = /(\d{4}-\d{2}-\d{2})[ T](\d{2}):\d{2}:\d{2}/;
-const MAX_ERROR_TYPE_LENGTH = 70;
+const MAX_ERROR_TYPE_PREVIEW_LENGTH = 70;
+const MIN_BAR_WIDTH_PERCENT = 2;
 
 analyzeBtn.addEventListener("click", async () => {
   const file = fileInput.files?.[0];
@@ -65,12 +66,12 @@ function analyzeLogs(text) {
 }
 
 function extractErrorType(line) {
-  const keywordMatch = line.match(/\b(?:ERROR|FATAL)\b[]:\s-]*([A-Za-z0-9_.-]+)/i);
+  const keywordMatch = line.match(/\b(?:ERROR|FATAL)\b[\[\]:\s-]*([A-Za-z0-9_.-]+)/i);
   if (keywordMatch?.[1]) return keywordMatch[1];
 
   const cleaned = line.replace(/\s+/g, " ").trim();
-  return cleaned.length > MAX_ERROR_TYPE_LENGTH
-    ? `${cleaned.slice(0, MAX_ERROR_TYPE_LENGTH)}...`
+  return cleaned.length > MAX_ERROR_TYPE_PREVIEW_LENGTH
+    ? `${cleaned.slice(0, MAX_ERROR_TYPE_PREVIEW_LENGTH)}...`
     : cleaned;
 }
 
@@ -111,7 +112,7 @@ function renderTrend(trend) {
   const maxCount = Math.max(...trend.map(([, count]) => count), 1);
   trendChart.innerHTML = trend
     .map(([label, count]) => {
-      const width = Math.max((count / maxCount) * 100, 2);
+      const width = Math.max((count / maxCount) * 100, MIN_BAR_WIDTH_PERCENT);
       return `
         <div class="bar-row">
           <div class="bar-label" title="${escapeHtml(label)}">${escapeHtml(label)}</div>
