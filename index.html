@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,56 +7,176 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">⌘</span>
+          <div class="brand-text">
+            <strong>日志分析助手</strong>
+            <span class="brand-sub">本地解析 · 数据不上传</span>
+          </div>
+        </div>
+        <button id="themeToggle" class="ghost-btn" type="button" title="切换深色 / 浅色模式">
+          <span class="theme-icon">🌙</span>
+          <span class="theme-label">深色</span>
+        </button>
+      </div>
+    </header>
+
     <main class="container">
-      <h1>日志分析助手</h1>
-      <p class="subtitle">上传日志文件，查看错误频次与趋势</p>
+      <!-- 上传区 -->
+      <section class="card upload-card">
+        <div
+          id="dropZone"
+          class="dropzone"
+          role="button"
+          tabindex="0"
+          aria-label="拖拽日志文件到此处，或点击选择"
+        >
+          <div class="dropzone-icon" aria-hidden="true">📂</div>
+          <p class="dropzone-title">拖拽日志文件到此处，或点击选择</p>
+          <p class="dropzone-hint">支持 .log / .txt / .out 等文本文件，可一次选择多个</p>
+          <input
+            id="logFile"
+            type="file"
+            accept=".log,.txt,.out,.text,.json"
+            multiple
+            hidden
+          />
+        </div>
 
-      <section class="card">
-        <label for="logFile">选择日志文件</label>
-        <input id="logFile" type="file" accept=".log,.txt,.out,.text" />
-        <button id="analyzeBtn" type="button">开始分析</button>
-        <p id="status" class="status">等待上传文件</p>
+        <div class="upload-actions">
+          <button id="analyzeBtn" type="button" class="primary-btn">开始分析</button>
+          <button id="sampleBtn" type="button" class="ghost-btn">加载示例日志</button>
+          <button id="clearBtn" type="button" class="ghost-btn">清空</button>
+          <span id="status" class="status">等待上传文件</span>
+        </div>
+        <ul id="fileList" class="file-list" hidden></ul>
       </section>
 
-      <section class="grid">
-        <div class="card metric">
-          <span class="metric-title">总行数</span>
-          <strong id="totalLines">0</strong>
-        </div>
-        <div class="card metric">
-          <span class="metric-title">错误行数</span>
-          <strong id="errorLines">0</strong>
-        </div>
-        <div class="card metric">
-          <span class="metric-title">错误率</span>
-          <strong id="errorRate">0%</strong>
-        </div>
+      <!-- 空状态引导 -->
+      <section id="emptyState" class="card empty-state">
+        <h2>三步快速上手</h2>
+        <ol class="steps">
+          <li><span class="step-no">1</span> 拖入或选择日志文件（可多选）</li>
+          <li><span class="step-no">2</span> 点击「开始分析」</li>
+          <li><span class="step-no">3</span> 查看级别分布、错误频次与趋势，必要时导出报告</li>
+        </ol>
+        <p class="muted">没有日志？点上面的「加载示例日志」先体验一下。</p>
       </section>
 
-      <section class="card">
-        <h2>错误频次（Top 10）</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>错误类型</th>
-              <th>次数</th>
-            </tr>
-          </thead>
-          <tbody id="freqTableBody">
-            <tr>
-              <td colspan="2" class="muted">暂无数据</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+      <!-- 结果区 -->
+      <div id="results" hidden>
+        <!-- 概览指标 -->
+        <section class="grid metrics">
+          <div class="card metric">
+            <span class="metric-title">总行数</span>
+            <strong id="totalLines">0</strong>
+          </div>
+          <div class="card metric">
+            <span class="metric-title">错误行数</span>
+            <strong id="errorLines">0</strong>
+          </div>
+          <div class="card metric">
+            <span class="metric-title">错误率</span>
+            <strong id="errorRate">0%</strong>
+          </div>
+          <div class="card metric">
+            <span class="metric-title">文件数</span>
+            <strong id="fileCount">0</strong>
+          </div>
+        </section>
 
-      <section class="card">
-        <h2>错误趋势（按小时）</h2>
-        <div id="trendChart" class="trend-chart">
-          <p class="muted">暂无数据</p>
+        <!-- 级别分布 -->
+        <section class="card">
+          <div class="card-head">
+            <h2>日志级别分布</h2>
+          </div>
+          <div id="levelBreakdown" class="level-chips"></div>
+        </section>
+
+        <div class="grid two-col">
+          <!-- 错误频次 -->
+          <section class="card">
+            <div class="card-head">
+              <h2>错误类型频次（Top 10）</h2>
+              <span class="muted small">点击某行查看样例</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>错误类型</th>
+                  <th class="num">次数</th>
+                </tr>
+              </thead>
+              <tbody id="freqTableBody">
+                <tr>
+                  <td colspan="2" class="muted">暂无数据</td>
+                </tr>
+              </tbody>
+            </table>
+            <div id="samplePanel" class="sample-panel" hidden>
+              <div class="sample-head">
+                <strong id="sampleTitle"></strong>
+                <button id="sampleClose" type="button" class="ghost-btn small">关闭</button>
+              </div>
+              <pre id="sampleBody" class="sample-body"></pre>
+            </div>
+          </section>
+
+          <!-- 趋势 -->
+          <section class="card">
+            <div class="card-head">
+              <h2>错误趋势</h2>
+              <div class="seg" role="group" aria-label="趋势粒度">
+                <button class="seg-btn active" data-granularity="hour" type="button">按小时</button>
+                <button class="seg-btn" data-granularity="day" type="button">按天</button>
+              </div>
+            </div>
+            <div id="trendChart" class="trend-chart">
+              <p class="muted">暂无数据</p>
+            </div>
+          </section>
         </div>
-      </section>
+
+        <!-- 日志预览 -->
+        <section class="card">
+          <div class="card-head">
+            <h2>日志预览</h2>
+            <div class="export-actions">
+              <button id="exportJsonBtn" type="button" class="ghost-btn small">导出 JSON</button>
+              <button id="exportCsvBtn" type="button" class="ghost-btn small">导出 CSV</button>
+            </div>
+          </div>
+          <div class="filters">
+            <input
+              id="searchInput"
+              type="search"
+              class="search-input"
+              placeholder="搜索关键字（实时过滤）"
+            />
+            <div id="levelFilters" class="level-filters"></div>
+          </div>
+          <div class="preview-wrap">
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th class="num">#</th>
+                  <th class="lvl">级别</th>
+                  <th>内容</th>
+                </tr>
+              </thead>
+              <tbody id="previewBody"></tbody>
+            </table>
+          </div>
+          <p id="previewMeta" class="muted small"></p>
+        </section>
+      </div>
     </main>
+
+    <footer class="footer">
+      <span class="muted small">logging-helper · 纯前端，零依赖，日志仅在本地浏览器解析</span>
+    </footer>
 
     <script src="./app.js"></script>
   </body>
