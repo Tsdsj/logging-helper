@@ -35,12 +35,45 @@ const exportCsvBtn = document.getElementById("exportCsvBtn");
 const themeToggle = document.getElementById("themeToggle");
 
 // ---------- Constants ----------
-const LEVELS = ["DEBUG", "INFO", "WARN", "ERROR", "FATAL"];
-const LEVEL_REGEX = /\b(DEBUG|INFO|WARN(?:ING)?|ERROR|FATAL|CRITICAL)\b/i;
+const LEVELS = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"];
 const ERROR_LEVELS = new Set(["ERROR", "FATAL"]);
-// Matches a broad set of timestamp formats and captures date + hour.
-const TS_REGEX =
-  /(\d{4}-\d{2}-\d{2})[ T](\d{2}):\d{2}:\d{2}|\[(\d{4}-\d{2}-\d{2})[ T](\d{2}):\d{2}:\d{2}/;
+
+// Canonical level for every keyword we recognise across languages/frameworks.
+const LEVEL_ALIASES = {
+  TRACE: "TRACE", FINEST: "TRACE", FINER: "TRACE", VERBOSE: "TRACE",
+  DEBUG: "DEBUG", FINE: "DEBUG", DBG: "DEBUG",
+  INFO: "INFO", INFORMATION: "INFO", NOTICE: "INFO",
+  WARN: "WARN", WARNING: "WARN",
+  ERROR: "ERROR", ERR: "ERROR", SEVERE: "ERROR",
+  FATAL: "FATAL", CRITICAL: "FATAL", CRIT: "FATAL", EMERG: "FATAL",
+  EMERGENCY: "FATAL", ALERT: "FATAL", PANIC: "FATAL",
+  // single-letter priorities only used for Android logcat positional match
+  V: "TRACE", D: "DEBUG", I: "INFO", W: "WARN", E: "ERROR", F: "FATAL",
+};
+
+// Structured level field: "level":"error", level=ERROR, "severity":"WARN",
+// python json "levelname":"INFO", pino/bunyan numeric "level":50.
+const LEVEL_FIELD_REGEX =
+  /["']?(?:level(?:name|no)?|severity|lvl|loglevel)["']?\s*[:=]\s*["']?([A-Za-z]+|\d+)/i;
+// Plain keyword anywhere in the line (multi-char words only, no single letters).
+const LEVEL_WORD_REGEX =
+  /\b(TRACE|DEBUG|INFO(?:RMATION)?|NOTICE|WARN(?:ING)?|ERROR|SEVERE|FATAL|CRITICAL|PANIC|ALERT|EMERG(?:ENCY)?)\b/i;
+// Android logcat: "MM-DD HH:MM:SS.sss  PID  TID L Tag:"
+const LOGCAT_REGEX =
+  /^\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+\d+\s+\d+\s+([VDIWEF])\s/;
+
+// Timestamp formats.
+const TS_ISO_REGEX = /(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):\d{2}:\d{2}/;
+const TS_EPOCH_REGEX =
+  /["']?(?:@?timestamp|time|ts)["']?\s*[:=]\s*["']?(\d{10}|\d{13})\b/i;
+const TS_MONTH_REGEX =
+  /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\s+(\d{2}):\d{2}:\d{2}\b/;
+const TS_MMDD_REGEX = /\b(\d{2})-(\d{2})\s+(\d{2}):\d{2}:\d{2}(?:\.\d+)?\b/;
+const MONTHS = {
+  Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
+  Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12",
+};
+
 const MAX_ERROR_TYPE_PREVIEW_LENGTH = 70;
 const MIN_BAR_WIDTH_PERCENT = 2;
 const PREVIEW_LIMIT = 500;
@@ -207,12 +240,45 @@ function parseLines(text) {
 }
 
 function detectLevel(line) {
-  const m = line.match(LEVEL_REGEX);
-  if (!m) return "OTHER";
-  let lvl = m[1].toUpperCase();
-  if (lvl === "WARNING") lvl = "WARN";
-  if (lvl === "CRITICAL") lvl = "FATAL";
-  return lvl;
+  // 1. Structured level field (JSON / logfmt): most authoritative.
+  const field = line.match(LEVEL_FIELD_REGEX);
+  if (field) {
+    const value = field[1];
+    if (/^\d+$/.test(value)) {
+      const numeric = numericLevel(Number(value));
+      if (numeric) return numeric;
+    } else {
+      const mapped = LEVEL_ALIASES[value.toUpperCase()];
+      if (mapped) return mapped;
+    }
+  }
+
+  // 2. Android logcat positional priority letter (before keyword search so a
+  // word like "fatal" in the message can't override the real priority).
+  const logcat = line.match(LOGCAT_REGEX);
+  if (logcat) return LEVEL_ALIASES[logcat[1]];
+
+  // 3. Plain keyword anywhere in the line.
+  const word = line.match(LEVEL_WORD_REGEX);
+  if (word) {
+    const mapped = LEVEL_ALIASES[word[1].toUpperCase()];
+    if (mapped) return mapped;
+  }
+
+  return "OTHER";
+}
+
+// pino / bunyan numeric levels (10/20/30/40/50/60), tolerant of in-between
+// custom values. Values < 10 are ignored to avoid clashing with syslog
+// severities (0-7), which use the opposite ordering.
+function numericLevel(n) {
+  if (n < 10) return null;
+  if (n < 20) return "TRACE";
+  if (n < 30) return "DEBUG";
+  if (n < 40) return "INFO";
+  if (n < 50) return "WARN";
+  if (n < 60) return "ERROR";
+  return "FATAL";
 }
 
 function summarize(rows, fileCount) {
@@ -265,8 +331,15 @@ function sortTrend(counter) {
 }
 
 function extractErrorType(line) {
+  // JSON-style message field (winston/pino/bunyan/zap json, etc.).
+  const jsonMsg = line.match(
+    /["'](?:msg|message|error|err)["']\s*:\s*["']([^"']{1,80})/i
+  );
+  if (jsonMsg?.[1]) return firstToken(jsonMsg[1]);
+
+  // Keyword followed by an identifier-like token.
   const keywordMatch = line.match(
-    /\b(?:ERROR|FATAL|CRITICAL)\b[\[\]:\s-]*([A-Za-z0-9_.-]+)/i
+    /\b(?:ERROR|FATAL|CRITICAL|SEVERE|PANIC)\b[\[\]:=\s-]*([A-Za-z0-9_.$-]+)/i
   );
   if (keywordMatch?.[1]) return keywordMatch[1];
 
@@ -276,12 +349,47 @@ function extractErrorType(line) {
     : cleaned;
 }
 
+function firstToken(text) {
+  const trimmed = text.trim();
+  const token = trimmed.split(/[\s:,]+/)[0];
+  return token || trimmed;
+}
+
 function extractTimeKeys(line) {
-  const match = line.match(TS_REGEX);
-  if (!match) return { hourKey: "未识别时间", dayKey: "未识别时间" };
-  const date = match[1] || match[3];
-  const hour = match[2] || match[4];
-  return { hourKey: `${date} ${hour}:00`, dayKey: date };
+  // 1. ISO / common: YYYY-MM-DD[ T]HH:MM:SS (handles ms, timezone, brackets).
+  let m = line.match(TS_ISO_REGEX);
+  if (m) {
+    const date = `${m[1]}-${m[2]}-${m[3]}`;
+    return { hourKey: `${date} ${m[4]}:00`, dayKey: date };
+  }
+
+  // 2. Epoch seconds/milliseconds in a JSON/logfmt time field (pino/bunyan).
+  m = line.match(TS_EPOCH_REGEX);
+  if (m) {
+    const ms = m[1].length === 13 ? Number(m[1]) : Number(m[1]) * 1000;
+    const d = new Date(ms);
+    if (!Number.isNaN(d.getTime())) {
+      const iso = d.toISOString();
+      const date = iso.slice(0, 10);
+      return { hourKey: `${date} ${iso.slice(11, 13)}:00`, dayKey: date };
+    }
+  }
+
+  // 3. Syslog month-name timestamp "May 21 08:31:09" (no year).
+  m = line.match(TS_MONTH_REGEX);
+  if (m && MONTHS[m[1]]) {
+    const date = `${MONTHS[m[1]]}-${String(m[2]).padStart(2, "0")}`;
+    return { hourKey: `${date} ${m[3]}:00`, dayKey: date };
+  }
+
+  // 4. Android logcat / "MM-DD HH:MM:SS" (no year).
+  m = line.match(TS_MMDD_REGEX);
+  if (m) {
+    const date = `${m[1]}-${m[2]}`;
+    return { hourKey: `${date} ${m[3]}:00`, dayKey: date };
+  }
+
+  return { hourKey: "未识别时间", dayKey: "未识别时间" };
 }
 
 // ---------- Rendering ----------
@@ -315,6 +423,7 @@ function renderLevelBreakdown(result) {
 
 function levelColor(lvl) {
   const map = {
+    TRACE: "var(--lvl-trace)",
     DEBUG: "var(--lvl-debug)",
     INFO: "var(--lvl-info)",
     WARN: "var(--lvl-warn)",
