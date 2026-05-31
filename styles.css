@@ -13,6 +13,7 @@
   --radius-sm: 9px;
   --space: 16px;
 
+  --lvl-trace: #94a3b8;
   --lvl-debug: #6b7280;
   --lvl-info: #2563eb;
   --lvl-warn: #d97706;
@@ -33,6 +34,7 @@
   --primary-soft: rgba(59, 130, 246, 0.16);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
 
+  --lvl-trace: #6b7585;
   --lvl-debug: #8b949e;
   --lvl-info: #58a6ff;
   --lvl-warn: #f0a440;
@@ -586,6 +588,7 @@ th {
   color: #fff;
 }
 
+.badge-TRACE { background: var(--lvl-trace); }
 .badge-DEBUG { background: var(--lvl-debug); }
 .badge-INFO { background: var(--lvl-info); }
 .badge-WARN { background: var(--lvl-warn); }
