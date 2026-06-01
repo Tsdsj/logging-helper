@@ -1,0 +1,210 @@
+[
+  {
+    "task_id": "root-cause-java-chain",
+    "task_type": "frontend",
+    "description": "Show the most likely Java or Spring root cause for a multi-line error event.",
+    "steps": [
+      "Add a parser test with a Java stack trace that contains multiple `Caused by` sections.",
+      "Extract the deepest meaningful cause line from the event without changing the existing raw log text.",
+      "Render a compact root-cause line in the preview detail when the stack is expanded.",
+      "Run the parser and preview tests and confirm the existing Spring Boot port failure test still passes."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "root-cause-python-traceback",
+    "task_type": "frontend",
+    "description": "Show the most likely Python traceback root cause for a multi-line error event.",
+    "steps": [
+      "Add a parser test with a Python traceback ending in a specific exception line.",
+      "Extract the final exception line as the root cause for Python traceback events.",
+      "Render the extracted Python root cause in the same preview detail area used by Java events.",
+      "Run the parser and preview tests and confirm Java root-cause extraction still passes."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "preview-context-window",
+    "task_type": "frontend",
+    "description": "Let users expand an error row to inspect nearby log events before and after it.",
+    "steps": [
+      "Add state for a context-window toggle keyed by preview row line number.",
+      "Render a `Context` button on ERROR and FATAL preview rows.",
+      "Show up to three previous and three next parsed events in a detail row when the button is active.",
+      "Verify in the browser that toggling context does not clear search, level, or time filters."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "issue-report-markdown-core",
+    "task_type": "frontend",
+    "description": "Generate a copyable Markdown report for one selected error event.",
+    "steps": [
+      "Add a pure formatter that builds Markdown from one row, its root cause, diagnostic match, and nearby context.",
+      "Add tests that assert the report includes level, line number, summary, root cause, diagnostic title, and raw snippet.",
+      "Add a `Report` button on ERROR and FATAL preview rows that opens a report detail panel.",
+      "Run module tests and verify the panel shows report text for the Spring Boot port failure sample."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "issue-report-copy-action",
+    "task_type": "frontend",
+    "description": "Allow users to copy the generated Markdown issue report from the preview.",
+    "steps": [
+      "Add a copy button inside the report detail panel.",
+      "Use the Clipboard API when available and show a short success or failure status message.",
+      "Add a fallback that selects the report text when clipboard writing is unavailable.",
+      "Verify in the browser that copying a Spring Boot report keeps the preview row expanded."
+    ],
+    "budget_minutes": 8,
+    "passes": false
+  },
+  {
+    "task_id": "trace-id-detection",
+    "task_type": "frontend",
+    "description": "Detect trace, request, correlation, and span identifiers from parsed log rows.",
+    "steps": [
+      "Add parser tests for `traceId`, `requestId`, `correlationId`, and `spanId` formats.",
+      "Store detected identifiers on each parsed row without changing existing summary counts.",
+      "Render compact identifier chips in preview rows that contain detected identifiers.",
+      "Run parser and app entry smoke tests to confirm rows without identifiers still render normally."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "trace-id-filter",
+    "task_type": "frontend",
+    "description": "Let users filter the preview to all events from the same detected trace or request ID.",
+    "steps": [
+      "Add preview state for an active identifier filter.",
+      "Make identifier chips clickable and filter rows to matching identifier values.",
+      "Show the active identifier filter as a removable chip above the preview.",
+      "Verify in the browser that identifier filtering composes with keyword and level filters."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "diagnostic-match-explanation",
+    "task_type": "frontend",
+    "description": "Explain why a diagnostic knowledge-base rule matched an error event.",
+    "steps": [
+      "Extend diagnostic matching to return the rule ID and matched pattern label or regex source.",
+      "Add a test that confirms `PortAlreadyInUse` exposes the matching evidence.",
+      "Render a `Matched because` line in the diagnostic detail panel.",
+      "Verify existing diagnostic suggestions still show their reason and solution lists."
+    ],
+    "budget_minutes": 8,
+    "passes": false
+  },
+  {
+    "task_id": "custom-diagnostics-import",
+    "task_type": "frontend",
+    "description": "Allow users to import a local custom diagnostics JSON file for the current session.",
+    "steps": [
+      "Add an import control near the diagnostics or upload options area.",
+      "Validate the selected JSON with the existing diagnostics loader and show a clear error for invalid files.",
+      "Merge valid custom rules after built-in rules so custom matches can extend coverage.",
+      "Verify in the browser that a custom rule can produce a diagnostic suggestion for a sample error."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "custom-diagnostics-export-template",
+    "task_type": "frontend",
+    "description": "Provide a downloadable custom diagnostics JSON template.",
+    "steps": [
+      "Add an export-template button near the custom diagnostics import control.",
+      "Generate a small JSON template containing one example rule with match, reason, details, and solutions fields.",
+      "Download the template as `diagnostics-custom-template.json`.",
+      "Verify the downloaded template can be re-imported without validation errors."
+    ],
+    "budget_minutes": 8,
+    "passes": false
+  },
+  {
+    "task_id": "severity-labels-core",
+    "task_type": "frontend",
+    "description": "Assign user-visible severity labels to high-impact error events.",
+    "steps": [
+      "Add a severity helper that maps startup failure, out-of-memory, database unavailable, fatal, and generic error events to labels.",
+      "Add tests for critical, high, medium, and low severity examples.",
+      "Render the severity label in ERROR and FATAL preview rows.",
+      "Verify existing level badges and diagnostic buttons still fit inside the preview row."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "severity-summary-card",
+    "task_type": "frontend",
+    "description": "Summarize severity counts above the preview so users can judge impact quickly.",
+    "steps": [
+      "Compute severity counts from parsed rows during analysis.",
+      "Render a compact severity summary near the level distribution or metrics area.",
+      "Make the summary hide itself when no ERROR or FATAL rows exist.",
+      "Verify in the browser that loading the sample log updates severity counts without changing total line metrics."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "event-timeline-baseline",
+    "task_type": "frontend",
+    "description": "Show a compact timeline of notable startup and error events.",
+    "steps": [
+      "Select notable events from parsed rows, including WARN, ERROR, FATAL, startup failure, shutdown, and retry messages.",
+      "Render a timeline section with time, level, and short message for each notable event.",
+      "Limit the timeline to a readable number of entries and show a count when events are omitted.",
+      "Verify in the browser that the Spring Boot startup failure appears in the timeline."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "timeline-click-filter",
+    "task_type": "frontend",
+    "description": "Let users click a timeline item to jump the preview toward the related event.",
+    "steps": [
+      "Make timeline items clickable with a stable line-number target.",
+      "When clicked, apply a temporary line focus state and expand the matching preview row if it is visible.",
+      "Show a clear message when the focused line is hidden by current filters.",
+      "Verify in the browser that clearing filters reveals the focused timeline event."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  },
+  {
+    "task_id": "README-log-intelligence-docs",
+    "task_type": "docs",
+    "description": "Document the new log intelligence workflow for future users and agents.",
+    "steps": [
+      "Add a README section that describes root cause, context, reports, trace filters, severity, and timeline features.",
+      "Mention that all diagnostics and reports remain local in the browser.",
+      "Add the relevant new files to the file overview if implementation added any new modules.",
+      "Check that the README links and headings render clearly from repository root."
+    ],
+    "budget_minutes": 5,
+    "passes": false
+  },
+  {
+    "task_id": "e2e-log-intelligence-smoke",
+    "task_type": "e2e",
+    "description": "Verify the completed log intelligence workflow through the browser UI.",
+    "steps": [
+      "Start the static site with the project init or local HTTP server command.",
+      "Load a fixture containing Spring Boot, Python traceback, and traceId-linked events.",
+      "Verify root cause, context, diagnostic explanation, report, trace filter, severity, and timeline are visible.",
+      "Run the module test suite and record the exact commands used."
+    ],
+    "budget_minutes": 10,
+    "passes": false
+  }
+]
