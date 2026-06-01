@@ -205,6 +205,6 @@
       "Run the module test suite and record the exact commands used."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   }
 ]

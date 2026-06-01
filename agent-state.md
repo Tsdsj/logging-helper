@@ -4,7 +4,7 @@
 - Log intelligence planning queue initialized with `$Task_init`.
 
 ## First Pending Task
-- `e2e-log-intelligence-smoke`
+- None. All tasks in `feature_list.json` are complete.
 
 ## Recommended Next Reads
 - `AGENTS.md`
@@ -34,3 +34,4 @@
 - Completed `event-timeline-baseline`: parsed rows now feed a compact key-event timeline for WARN/ERROR/FATAL, startup failures, shutdown, and retry messages with a readable limit and omitted-count note.
 - Completed `timeline-click-filter`: timeline items now focus their matching preview row by stable line number, expand visible stack details, show a hidden-by-filters message when needed, and recover focus after filters are cleared.
 - Completed `README-log-intelligence-docs`: README now documents root cause, context, reports, trace filters, severity, timeline, local-only diagnostics/reporting, and the new helper modules.
+- Completed `e2e-log-intelligence-smoke`: browser E2E loaded Spring Boot, Python traceback, and traceId-linked events; verified root cause, context, diagnostic evidence, report, trace filter, severity, and timeline; module suite passed.
