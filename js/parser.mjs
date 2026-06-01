@@ -204,9 +204,26 @@ export function springBootFailureSummary(raw) {
 }
 
 export function extractRootCause(raw) {
+  const pythonCause = pythonTracebackCause(raw);
+  if (pythonCause) return { kind: "python", message: pythonCause };
   const javaCause = deepestJavaCause(raw);
   if (javaCause) return { kind: "java", message: javaCause };
   return null;
+}
+
+function pythonTracebackCause(raw) {
+  if (!/Traceback \(most recent call last\):/.test(raw)) return "";
+  const lines = raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i -= 1) {
+    const line = lines[i];
+    if (/^[A-Za-z_][\w.]*Error:\s+/.test(line) || /^[A-Za-z_][\w.]*Exception:\s+/.test(line)) {
+      return line;
+    }
+  }
+  return "";
 }
 
 function deepestJavaCause(raw) {

@@ -11,3 +11,4 @@
 - 2026-06-01: Wrote a typed feature queue for root-cause extraction, context viewing, Markdown issue reports, trace ID filtering, diagnostic explanations, custom knowledge-base rules, severity labels, and event timeline.
 - 2026-06-01: Added `init.ps1` as the Windows validation entry because this environment lacks a working POSIX bash runtime.
 - 2026-06-01: Completed `root-cause-java-chain`. Added Java/Spring deepest-cause extraction, rendered root cause in expanded stack details, added `tests/root-cause.test.mjs`, and verified with `powershell -ExecutionPolicy Bypass -File .\init.ps1`.
+- 2026-06-01: Completed `root-cause-python-traceback`. Extended root-cause extraction for Python tracebacks, added regression coverage in `tests/root-cause.test.mjs`, and verified with `powershell -ExecutionPolicy Bypass -File .\init.ps1`.

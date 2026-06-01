@@ -23,7 +23,7 @@
       "Run the parser and preview tests and confirm Java root-cause extraction still passes."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "preview-context-window",
