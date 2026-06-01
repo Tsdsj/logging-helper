@@ -75,7 +75,7 @@
       "Run parser and app entry smoke tests to confirm rows without identifiers still render normally."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "trace-id-filter",

@@ -10,6 +10,7 @@ export function renderPreviewRow(row, matcher, opts = {}) {
   const hasContext = ERROR_LEVELS.has(row.level) && Array.isArray(opts.contextRows);
   const dup = row.count > 1 ? `<span class="dup-badge">×${row.count}</span>` : "";
   const summary = opts.expandedStack ? row.raw : previewSummary(row.raw);
+  const identifierChips = renderIdentifierChips(row.identifiers);
   const stack = hasStack
     ? `<button class="stack-badge detail-toggle" type="button" data-action="toggle-stack" data-line-no="${key}">${
         opts.expandedStack ? "收起" : "堆栈"
@@ -54,7 +55,7 @@ export function renderPreviewRow(row, matcher, opts = {}) {
       <tr>
         <td class="num">${row.lineNo}</td>
         <td class="lvl"><span class="badge badge-${row.level}">${row.level}</span>${dup}</td>
-        <td class="line-content">${highlight(summary, matcher)}${stack}${diagnosticButton}${contextButton}${reportButton}</td>
+        <td class="line-content">${highlight(summary, matcher)}${identifierChips}${stack}${diagnosticButton}${contextButton}${reportButton}</td>
       </tr>${detailRows.join("")}`;
 }
 
@@ -90,6 +91,17 @@ export function buildSearchMatcher(query, mode, logic, onError = () => {}) {
 
 export function rowHasDiagnostic(row, rules) {
   return ERROR_LEVELS.has(row.level) && Boolean(findDiagnostic(row, rules));
+}
+
+function renderIdentifierChips(identifiers = {}) {
+  const chips = Object.entries(identifiers);
+  if (!chips.length) return "";
+  return `<span class="identifier-chips">${chips
+    .map(
+      ([key, value]) =>
+        `<span class="identifier-chip" title="${escapeHtml(key)}">${escapeHtml(key)}=${escapeHtml(value)}</span>`
+    )
+    .join("")}</span>`;
 }
 
 function renderRootCause(rootCause) {

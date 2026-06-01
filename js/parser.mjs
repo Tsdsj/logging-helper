@@ -61,6 +61,7 @@ export function parseLines(text, opts = { mergeStack: true, collapseDup: true })
       raw,
       level: isSpringBootFailure ? "ERROR" : detectLevel(raw),
       ...extractTimeKeys(raw),
+      identifiers: extractIdentifiers(raw),
       count: 1,
       lineSpan: 1,
       merged: false,
@@ -209,6 +210,21 @@ export function extractRootCause(raw) {
   const javaCause = deepestJavaCause(raw);
   if (javaCause) return { kind: "java", message: javaCause };
   return null;
+}
+
+export function extractIdentifiers(raw) {
+  const ids = {};
+  const patterns = {
+    traceId: /\btrace[_-]?id\b\s*[:=]\s*["']?([A-Za-z0-9._:-]+)/i,
+    requestId: /\brequest[_-]?id\b\s*[:=]\s*["']?([A-Za-z0-9._:-]+)/i,
+    correlationId: /\bcorrelation[_-]?id\b\s*[:=]\s*["']?([A-Za-z0-9._:-]+)/i,
+    spanId: /\bspan[_-]?id\b\s*[:=]\s*["']?([A-Za-z0-9._:-]+)/i,
+  };
+  for (const [key, re] of Object.entries(patterns)) {
+    const match = raw.match(re);
+    if (match?.[1]) ids[key] = match[1];
+  }
+  return ids;
 }
 
 function pythonTracebackCause(raw) {
