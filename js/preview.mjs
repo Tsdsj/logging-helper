@@ -1,4 +1,4 @@
-import { ERROR_LEVELS, springBootFailureSummary } from "./parser.mjs";
+import { ERROR_LEVELS, extractRootCause, springBootFailureSummary } from "./parser.mjs";
 import { findDiagnostic } from "./diagnostics.mjs";
 import { escapeHtml } from "./utils.mjs";
 
@@ -19,10 +19,12 @@ export function renderPreviewRow(row, matcher, opts = {}) {
   const detailRows = [];
 
   if (opts.expandedStack && hasStack) {
+    const rootCause = extractRootCause(row.raw);
     detailRows.push(`
       <tr class="preview-detail-row">
         <td></td>
         <td colspan="2">
+          ${rootCause ? renderRootCause(rootCause) : ""}
           <pre class="stack-detail">${highlight(row.raw, matcher)}</pre>
         </td>
       </tr>`);
@@ -72,6 +74,14 @@ export function buildSearchMatcher(query, mode, logic, onError = () => {}) {
 
 export function rowHasDiagnostic(row, rules) {
   return ERROR_LEVELS.has(row.level) && Boolean(findDiagnostic(row, rules));
+}
+
+function renderRootCause(rootCause) {
+  return `
+    <div class="root-cause-detail">
+      <span>Root cause</span>
+      <strong>${escapeHtml(rootCause.message)}</strong>
+    </div>`;
 }
 
 function renderDiagnosticDetail(diagnostic) {

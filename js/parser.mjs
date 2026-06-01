@@ -203,6 +203,26 @@ export function springBootFailureSummary(raw) {
     .join(" ");
 }
 
+export function extractRootCause(raw) {
+  const javaCause = deepestJavaCause(raw);
+  if (javaCause) return { kind: "java", message: javaCause };
+  return null;
+}
+
+function deepestJavaCause(raw) {
+  const lines = raw.split(/\r?\n/).map((line) => line.trim());
+  const causes = lines
+    .filter((line) => /^Caused by:\s+/.test(line))
+    .map((line) => line.replace(/^Caused by:\s+/, "").trim())
+    .filter(Boolean);
+  if (causes.length) return causes[causes.length - 1];
+
+  const topLevel = lines.find((line) =>
+    /^(?:[\w$]+\.)*[\w$]*(?:Exception|Error|Throwable)\b/.test(line)
+  );
+  return topLevel || "";
+}
+
 function isContinuation(line, prev) {
   if (!prev) return false;
   if (prev.isSpringBootFailure) {

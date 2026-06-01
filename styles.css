@@ -775,6 +775,30 @@ button.filter-chip:hover {
   font-size: 12.5px;
 }
 
+.root-cause-detail {
+  margin: 6px 0 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 8px;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.root-cause-detail span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.root-cause-detail strong {
+  display: block;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  word-break: break-word;
+}
+
 .diagnostic-detail {
   margin: 6px 0;
   padding: 12px;

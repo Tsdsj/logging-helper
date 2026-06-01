@@ -10,7 +10,7 @@
       "Run the parser and preview tests and confirm the existing Spring Boot port failure test still passes."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "root-cause-python-traceback",
