@@ -4,7 +4,7 @@
 - Log intelligence planning queue initialized with `$Task_init`.
 
 ## First Pending Task
-- `severity-labels-core`
+- `severity-summary-card`
 
 ## Recommended Next Reads
 - `AGENTS.md`
@@ -29,3 +29,4 @@
 - Completed `diagnostic-match-explanation`: diagnostic matches now retain the rule ID and matched regex source, and expanded diagnostic panels show a concise `Matched because` line without hiding the original reason or solutions.
 - Completed `custom-diagnostics-import`: users can import a local custom diagnostics JSON file for the current browser session, invalid JSON/rules show a clear error, and valid custom rules are appended after the built-in knowledge base.
 - Completed `custom-diagnostics-export-template`: the custom diagnostics toolbar now downloads a `diagnostics-custom-template.json` file generated from a pure template helper, and the generated template validates with the existing diagnostics loader.
+- Completed `severity-labels-core`: ERROR/FATAL preview rows now show Critical/High/Medium/Low severity labels from a reusable helper covering startup failures, out-of-memory, database connectivity, fatal events, and generic errors.

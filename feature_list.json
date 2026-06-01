@@ -140,7 +140,7 @@
       "Verify existing level badges and diagnostic buttons still fit inside the preview row."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "severity-summary-card",

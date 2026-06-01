@@ -1,6 +1,7 @@
 import { ERROR_LEVELS, extractRootCause, springBootFailureSummary } from "./parser.mjs";
 import { findDiagnostic } from "./diagnostics.mjs";
 import { buildIssueReport } from "./report.mjs";
+import { getSeverity } from "./severity.mjs";
 import { escapeHtml } from "./utils.mjs";
 
 export function renderPreviewRow(row, matcher, opts = {}) {
@@ -10,6 +11,7 @@ export function renderPreviewRow(row, matcher, opts = {}) {
   const hasContext = ERROR_LEVELS.has(row.level) && Array.isArray(opts.contextRows);
   const dup = row.count > 1 ? `<span class="dup-badge">×${row.count}</span>` : "";
   const summary = opts.expandedStack ? row.raw : previewSummary(row.raw);
+  const severity = renderSeverityBadge(getSeverity(row));
   const identifierChips = renderIdentifierChips(row.identifiers);
   const stack = hasStack
     ? `<button class="stack-badge detail-toggle" type="button" data-action="toggle-stack" data-line-no="${key}">${
@@ -55,7 +57,7 @@ export function renderPreviewRow(row, matcher, opts = {}) {
       <tr>
         <td class="num">${row.lineNo}</td>
         <td class="lvl"><span class="badge badge-${row.level}">${row.level}</span>${dup}</td>
-        <td class="line-content">${highlight(summary, matcher)}${identifierChips}${stack}${diagnosticButton}${contextButton}${reportButton}</td>
+        <td class="line-content">${highlight(summary, matcher)}${severity}${identifierChips}${stack}${diagnosticButton}${contextButton}${reportButton}</td>
       </tr>${detailRows.join("")}`;
 }
 
@@ -106,6 +108,13 @@ function renderIdentifierChips(identifiers = {}) {
         )}" data-identifier-value="${escapeHtml(value)}">${escapeHtml(key)}=${escapeHtml(value)}</button>`
     )
     .join("")}</span>`;
+}
+
+function renderSeverityBadge(severity) {
+  if (!severity) return "";
+  return `<span class="severity-badge severity-${escapeHtml(severity.key)}">${escapeHtml(
+    severity.label
+  )}</span>`;
 }
 
 function renderRootCause(rootCause) {
