@@ -768,7 +768,7 @@ button.filter-chip:hover {
 }
 
 .preview-wrap {
-  max-height: 360px;
+  max-height: min(68vh, 760px);
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1093,19 +1093,72 @@ button.filter-chip:hover {
   font-weight: 700;
 }
 
-.report-detail pre {
-  max-height: 300px;
+.markdown-body {
+  max-height: min(52vh, 560px);
   margin: 0;
-  padding: 10px;
+  padding: 14px 16px;
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
   color: var(--text);
+  font-size: 13px;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  margin: 0 0 8px;
+  color: var(--text);
+  letter-spacing: 0;
+}
+
+.markdown-body h1 {
+  font-size: 18px;
+}
+
+.markdown-body h2 {
+  margin-top: 14px;
+  font-size: 15px;
+}
+
+.markdown-body h3 {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.markdown-body ul {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+
+.markdown-body li {
+  margin: 4px 0;
+}
+
+.markdown-body pre {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  overflow: auto;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 84%, #000 16%);
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.markdown-body code,
+.markdown-body pre {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12.5px;
+}
+
+.report-source {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .report-copy-status {

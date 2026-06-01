@@ -53,7 +53,8 @@ const expanded = renderPreviewRow(row, null, {
 assert.match(expanded, /preview-detail-row/);
 assert.match(expanded, /Identify and stop the process/);
 assert.match(expanded, /端口 8080/);
-assert.match(expanded, /Matched because/);
+assert.match(expanded, /匹配依据/);
+assert.doesNotMatch(expanded, /Matched because/);
 assert.match(expanded, /port-already-in-use/);
 assert.match(expanded, /Web server failed to start/);
 assert.match(expanded, /修改应用端口/);

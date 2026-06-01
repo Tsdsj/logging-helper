@@ -622,10 +622,10 @@ function toggleExpandedSet(set, value) {
 }
 
 async function copyReport(lineNo) {
-  const reportEl = previewBody.querySelector(`pre[data-report-line-no="${lineNo}"]`);
+  const reportEl = previewBody.querySelector(`.report-source[data-report-line-no="${lineNo}"]`);
   const status = previewBody.querySelector(`[data-report-status="${lineNo}"]`);
   if (!reportEl || !status) return;
-  const text = reportEl.textContent;
+  const text = reportEl.value ?? reportEl.textContent;
   try {
     if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable");
     await navigator.clipboard.writeText(text);
@@ -642,6 +642,10 @@ function showReportStatus(el, message) {
 }
 
 function selectReportText(el) {
+  if (typeof el.select === "function") {
+    el.select();
+    return;
+  }
   const range = document.createRange();
   range.selectNodeContents(el);
   const selection = window.getSelection?.();

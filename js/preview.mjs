@@ -22,10 +22,10 @@ export function renderPreviewRow(row, matcher, opts = {}) {
     ? `<button class="diagnostic-badge detail-toggle" type="button" data-action="toggle-diagnostic" data-line-no="${key}">诊断建议</button>`
     : "";
   const contextButton = hasContext
-    ? `<button class="context-badge detail-toggle" type="button" data-action="toggle-context" data-line-no="${key}">Context</button>`
+    ? `<button class="context-badge detail-toggle" type="button" data-action="toggle-context" data-line-no="${key}">上下文</button>`
     : "";
   const reportButton = ERROR_LEVELS.has(row.level)
-    ? `<button class="report-badge detail-toggle" type="button" data-action="toggle-report" data-line-no="${key}">Report</button>`
+    ? `<button class="report-badge detail-toggle" type="button" data-action="toggle-report" data-line-no="${key}">报告</button>`
     : "";
   const detailRows = [];
 
@@ -121,7 +121,7 @@ function renderSeverityBadge(severity) {
 function renderRootCause(rootCause) {
   return `
     <div class="root-cause-detail">
-      <span>Root cause</span>
+      <span>根因</span>
       <strong>${escapeHtml(rootCause.message)}</strong>
     </div>`;
 }
@@ -144,9 +144,9 @@ function renderDiagnosticDetail(diagnostic) {
 
 function renderMatchEvidence(evidence) {
   if (!evidence) return "";
-  return `<p class="diagnostic-match">Matched because <code>${escapeHtml(
+  return `<p class="diagnostic-match">匹配依据：规则 <code>${escapeHtml(
     evidence.ruleId
-  )}</code> matched <code>${escapeHtml(evidence.pattern)}</code></p>`;
+  )}</code> 命中 <code>${escapeHtml(evidence.pattern)}</code></p>`;
 }
 
 function renderContextDetail(row, rows) {
@@ -161,7 +161,7 @@ function renderContextDetail(row, rows) {
         <td></td>
         <td colspan="2">
           <div class="context-detail">
-            <span>Nearby events</span>
+            <span>附近事件</span>
             <ul>${items.map(renderContextItem).join("")}</ul>
           </div>
         </td>
@@ -183,10 +183,11 @@ function renderReportDetail(row, opts) {
         <td colspan="2">
           <div class="report-detail">
             <div class="report-head">
-              <span>Markdown report</span>
+              <span>Markdown 报告</span>
               <button class="ghost-btn small" type="button" data-action="copy-report" data-report-line-no="${row.lineNo}">复制</button>
             </div>
-            <pre data-report-line-no="${row.lineNo}">${escapeHtml(report)}</pre>
+            <div class="markdown-body">${renderMarkdown(report)}</div>
+            <textarea class="report-source" data-report-line-no="${row.lineNo}" readonly>${escapeHtml(report)}</textarea>
             <p class="report-copy-status" data-report-status="${row.lineNo}" hidden></p>
           </div>
         </td>
@@ -200,6 +201,65 @@ function renderDiagnosticList(title, items) {
       <span>${escapeHtml(title)}</span>
       <ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
     </div>`;
+}
+
+function renderMarkdown(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  const html = [];
+  let inList = false;
+  let inCode = false;
+  const closeList = () => {
+    if (inList) {
+      html.push("</ul>");
+      inList = false;
+    }
+  };
+
+  for (const line of lines) {
+    if (/^```/.test(line)) {
+      closeList();
+      if (inCode) html.push("</code></pre>");
+      else html.push("<pre><code>");
+      inCode = !inCode;
+      continue;
+    }
+    if (inCode) {
+      html.push(`${escapeHtml(line)}\n`);
+      continue;
+    }
+    if (!line.trim()) {
+      closeList();
+      continue;
+    }
+    if (line.startsWith("# ")) {
+      closeList();
+      html.push(`<h1>${escapeHtml(line.slice(2))}</h1>`);
+      continue;
+    }
+    if (line.startsWith("## ")) {
+      closeList();
+      html.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
+      continue;
+    }
+    if (line.startsWith("### ")) {
+      closeList();
+      html.push(`<h3>${escapeHtml(line.slice(4))}</h3>`);
+      continue;
+    }
+    if (line.startsWith("- ")) {
+      if (!inList) {
+        html.push("<ul>");
+        inList = true;
+      }
+      html.push(`<li>${escapeHtml(line.slice(2))}</li>`);
+      continue;
+    }
+    closeList();
+    html.push(`<p>${escapeHtml(line)}</p>`);
+  }
+  closeList();
+  if (inCode) html.push("</code></pre>");
+  return html.join("");
 }
 
 function highlight(text, matcher) {

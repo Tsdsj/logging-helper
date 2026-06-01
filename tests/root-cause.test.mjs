@@ -24,6 +24,8 @@ const expanded = renderPreviewRow(rows[0], null, {
   diagnosticRules: [],
 });
 assert.match(expanded, /root-cause-detail/);
+assert.match(expanded, /根因/);
+assert.doesNotMatch(expanded, /Root cause/);
 assert.match(expanded, /java\.net\.ConnectException: Connection refused/);
 
 const pythonTraceback = `2026-06-01 10:05:00 ERROR app failed

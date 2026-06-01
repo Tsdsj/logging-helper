@@ -19,7 +19,8 @@ const collapsed = renderPreviewRow(rows[3], null, {
   diagnosticRules: [],
 });
 assert.match(collapsed, /data-action="toggle-context"/);
-assert.match(collapsed, /Context/);
+assert.match(collapsed, /上下文/);
+assert.doesNotMatch(collapsed, />Context</);
 assert.doesNotMatch(collapsed, /config fallback/);
 
 const expanded = renderPreviewRow(rows[3], null, {
@@ -28,6 +29,8 @@ const expanded = renderPreviewRow(rows[3], null, {
   diagnosticRules: [],
 });
 assert.match(expanded, /context-detail/);
+assert.match(expanded, /附近事件/);
+assert.doesNotMatch(expanded, /Nearby events/);
 assert.match(expanded, /config fallback/);
 assert.match(expanded, /connecting db/);
 assert.match(expanded, /cleanup/);

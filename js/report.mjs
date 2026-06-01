@@ -6,26 +6,26 @@ export function buildIssueReport(row, opts = {}) {
   const rootCause = extractRootCause(row.raw);
   const context = nearbyContext(row, opts.contextRows || []);
   const lines = [
-    "# Log Issue Report",
+    "# 日志问题报告",
     "",
-    "## Summary",
-    `- Level: ${row.level}`,
-    `- Line: ${row.lineNo}`,
-    `- Message: ${summaryOf(row.raw)}`,
+    "## 摘要",
+    `- 级别：${row.level}`,
+    `- 行号：${row.lineNo}`,
+    `- 消息：${summaryOf(row.raw)}`,
   ];
 
   if (rootCause) {
-    lines.push(`- Root cause: ${rootCause.message}`);
+    lines.push(`- 根因：${rootCause.message}`);
   }
 
   if (diagnostic) {
     lines.push(
       "",
-      "## Diagnostic",
+      "## 诊断建议",
       `- ${diagnostic.title}`,
       `- ${diagnostic.reason}`,
       "",
-      "### Suggested Actions",
+      "### 建议操作",
       ...diagnostic.solutions.map((item) => `- ${item}`)
     );
   }
@@ -33,12 +33,12 @@ export function buildIssueReport(row, opts = {}) {
   if (context.length) {
     lines.push(
       "",
-      "## Nearby Context",
+      "## 附近上下文",
       ...context.map((item) => `- #${item.lineNo} ${item.level}: ${summaryOf(item.raw)}`)
     );
   }
 
-  lines.push("", "## Raw Snippet", "```text", row.raw, "```");
+  lines.push("", "## 原始片段", "```text", row.raw, "```");
   return lines.join("\n");
 }
 
