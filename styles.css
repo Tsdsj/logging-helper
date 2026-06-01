@@ -716,7 +716,8 @@ button.filter-chip:hover {
 }
 
 .dup-badge,
-.stack-badge {
+.stack-badge,
+.diagnostic-badge {
   display: inline-block;
   margin-left: 6px;
   padding: 1px 7px;
@@ -735,6 +736,83 @@ button.filter-chip:hover {
   background: var(--lvl-other);
   color: #fff;
   opacity: 0.85;
+}
+
+.diagnostic-badge {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.28);
+}
+
+.detail-toggle {
+  font-family: inherit;
+  border: 0;
+  cursor: pointer;
+}
+
+.detail-toggle:hover {
+  opacity: 1;
+  filter: brightness(1.05);
+}
+
+.preview-detail-row td {
+  background: rgba(148, 163, 184, 0.08);
+  border-top: 0;
+}
+
+.stack-detail {
+  max-height: 260px;
+  margin: 6px 0;
+  padding: 10px 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+}
+
+.diagnostic-detail {
+  margin: 6px 0;
+  padding: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.28);
+  border-radius: 8px;
+  background: var(--primary-soft);
+  color: var(--text);
+}
+
+.diagnostic-detail strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.diagnostic-detail p {
+  margin: 0 0 10px;
+  color: var(--text);
+}
+
+.diagnostic-section {
+  margin-top: 8px;
+}
+
+.diagnostic-section span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.diagnostic-section ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.diagnostic-section li {
+  margin: 3px 0;
 }
 
 .line-content mark {

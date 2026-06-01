@@ -73,6 +73,10 @@ const LEVEL_WORD_REGEX =
 // Android logcat: "MM-DD HH:MM:SS.sss  PID  TID L Tag:"
 const LOGCAT_REGEX =
   /^\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+\d+\s+\d+\s+([VDIWEF])\s/;
+const SPRING_BOOT_FAILURE_TITLE_REGEX = /^APPLICATION FAILED TO START$/i;
+const SPRING_BOOT_FAILURE_SEPARATOR_REGEX = /^\*{3,}$/;
+const SPRING_BOOT_PORT_IN_USE_REGEX =
+  /\bWeb server failed to start\.\s+Port\s+\d+\s+was already in use\./i;
 
 // Timestamp formats.
 const TS_ISO_REGEX = /(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):\d{2}:\d{2}/;
@@ -89,6 +93,26 @@ const MONTHS = {
 const MAX_ERROR_TYPE_PREVIEW_LENGTH = 70;
 const MIN_BAR_WIDTH_PERCENT = 2;
 const PREVIEW_LIMIT = 500;
+const DIAGNOSTIC_RULES = [
+  {
+    id: "port-already-in-use",
+    title: "端口被占用",
+    match: (row) => isSpringBootPortInUse(row.raw),
+    reason: (row) => {
+      const port = extractPort(row.raw) || "目标";
+      return `Spring Boot 内置 Web 服务启动失败，端口 ${port} 已被其他进程占用。`;
+    },
+    details: [
+      "常见原因是上一次服务没有停止、IDE 重复启动了同一个应用，或者 Docker/本地中间件占用了同一端口。",
+      "如果这是开发环境问题，优先确认占用端口的进程是否就是旧的应用实例。",
+    ],
+    solutions: [
+      "Windows: `netstat -ano | findstr :<端口>` 找到 PID，再执行 `taskkill /PID <PID> /F`。",
+      "Linux/macOS: `lsof -i :<端口>` 找到 PID，再执行 `kill -9 <PID>`。",
+      "修改 `server.port`，或通过启动参数 `--server.port=<新端口>` 临时换端口。",
+    ],
+  },
+];
 
 const SAMPLE_LOG = `2024-05-21 08:01:12 INFO  service started on port 8080
 2024-05-21 08:03:45 DEBUG cache warm-up complete
@@ -116,12 +140,17 @@ let state = {
   searchLogic: "and", // "and" | "or" — how multiple plain keywords combine
   timeWindow: null, // { key, granularity } — selected trend bucket, or null
   lastInput: null, // { text, fileCount, label } — for re-analysis on option change
+  expandedRows: new Set(),
+  expandedDiagnostics: new Set(),
 };
 
 // A physical line is a continuation of the previous log event (stack frame,
 // "Caused by", indented traceback, etc.) rather than a new event.
 function isContinuation(line, prev) {
   if (!prev) return false;
+  if (prev.isSpringBootFailure) {
+    return !startsWithTimestamp(line) && !startsWithLogLevel(line);
+  }
   if (/^\s/.test(line)) return true; // indented (Java frames, Python "  File")
   if (/^(at\s|\.{3}\s?|Caused by:|Suppressed:|Traceback \(most recent)/.test(line)) {
     return true;
@@ -140,6 +169,32 @@ function isContinuation(line, prev) {
 
 function startsWithTimestamp(line) {
   return /^\s*[\[(]?(\d{4}-\d{2}-\d{2}|\d{2}:\d{2}:\d{2}|[A-Z][a-z]{2}\s+\d)/.test(line);
+}
+
+function startsWithLogLevel(line) {
+  return /^\s*(?:TRACE|DEBUG|INFO|WARN(?:ING)?|ERROR|FATAL)\b/i.test(line);
+}
+
+function isSpringBootFailureTitle(line) {
+  return SPRING_BOOT_FAILURE_TITLE_REGEX.test(line.trim());
+}
+
+function isSpringBootFailureStart(line, nextLine = "") {
+  const trimmed = line.trim();
+  if (isSpringBootFailureTitle(trimmed)) return true;
+  return (
+    SPRING_BOOT_FAILURE_SEPARATOR_REGEX.test(trimmed) &&
+    isSpringBootFailureTitle(nextLine || "")
+  );
+}
+
+function isSpringBootPortInUse(text) {
+  return SPRING_BOOT_PORT_IN_USE_REGEX.test(text);
+}
+
+function extractPort(text) {
+  const match = text.match(/\bPort\s+(\d+)\s+was already in use\b/i);
+  return match?.[1] || "";
 }
 
 // ---------- Theme ----------
@@ -255,6 +310,8 @@ function runAnalysis(text, fileCount, label) {
   state.activeLevels = new Set(LEVELS.concat(["OTHER"]));
   state.search = "";
   state.timeWindow = null;
+  state.expandedRows = new Set();
+  state.expandedDiagnostics = new Set();
   searchInput.value = "";
   clearSearchError();
 
@@ -294,24 +351,30 @@ function parseLines(text, opts = { mergeStack: true, collapseDup: true }) {
   let physicalNo = 0;
 
   // Pass 1: build events, merging multi-line stack continuations.
-  for (const raw of lines) {
+  for (let i = 0; i < lines.length; i += 1) {
+    const raw = lines[i];
     if (raw.trim() === "") continue;
     physicalNo += 1;
     const prev = entries[entries.length - 1];
     if (opts.mergeStack && isContinuation(raw, prev)) {
       prev.raw += `\n${raw}`;
       prev.lineSpan += 1;
+      if (isSpringBootPortInUse(prev.raw)) {
+        prev.level = "ERROR";
+      }
       prev.merged = true;
       continue;
     }
+    const isSpringBootFailure = isSpringBootFailureStart(raw, lines[i + 1]);
     entries.push({
       lineNo: physicalNo,
       raw,
-      level: detectLevel(raw),
+      level: isSpringBootFailure ? "ERROR" : detectLevel(raw),
       ...extractTimeKeys(raw),
       count: 1,
       lineSpan: 1,
       merged: false,
+      isSpringBootFailure,
     });
   }
 
@@ -331,6 +394,10 @@ function parseLines(text, opts = { mergeStack: true, collapseDup: true }) {
 }
 
 function detectLevel(line) {
+  if (isSpringBootFailureTitle(line) || isSpringBootPortInUse(line)) {
+    return "ERROR";
+  }
+
   // 1. Structured level field (JSON / logfmt): most authoritative.
   const field = line.match(LEVEL_FIELD_REGEX);
   if (field) {
@@ -442,7 +509,7 @@ function summarize(rows, fileCount) {
 // Normalise a log line into a template by replacing variable tokens with
 // placeholders, so structurally-similar messages cluster together.
 function templateOf(raw) {
-  let s = raw.split("\n")[0];
+  let s = springBootFailureSummary(raw) || raw.split("\n")[0];
   s = s
     .replace(/\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?(?:Z|[+-]\d{2}:?\d{2})?/g, "<TIME>")
     .replace(/\b[A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\b/g, "<TIME>")
@@ -466,6 +533,9 @@ function sortTrend(counter) {
 }
 
 function extractErrorType(line) {
+  if (isSpringBootPortInUse(line)) return "PortAlreadyInUse";
+  if (isSpringBootFailureTitle(line)) return "SpringBootStartupFailure";
+
   // JSON-style message field (winston/pino/bunyan/zap json, etc.).
   const jsonMsg = line.match(
     /["'](?:msg|message|error|err)["']\s*:\s*["']([^"']{1,80})/i
@@ -482,6 +552,20 @@ function extractErrorType(line) {
   return cleaned.length > MAX_ERROR_TYPE_PREVIEW_LENGTH
     ? `${cleaned.slice(0, MAX_ERROR_TYPE_PREVIEW_LENGTH)}...`
     : cleaned;
+}
+
+function springBootFailureSummary(raw) {
+  const lines = raw.split(/\r?\n/).map((line) => line.trim());
+  const descriptionIndex = lines.findIndex((line) => /^Description:$/i.test(line));
+  if (descriptionIndex === -1) return "";
+  const actionIndex = lines.findIndex(
+    (line, index) => index > descriptionIndex && /^Action:$/i.test(line)
+  );
+  const endIndex = actionIndex === -1 ? lines.length : actionIndex;
+  return lines
+    .slice(descriptionIndex + 1, endIndex)
+    .filter(Boolean)
+    .join(" ");
 }
 
 function firstToken(text) {
@@ -829,23 +913,31 @@ function renderPreview() {
 
   const shown = filtered.slice(0, PREVIEW_LIMIT);
   previewBody.innerHTML = shown
-    .map((row) => {
-      const dup = row.count > 1 ? `<span class="dup-badge">×${row.count}</span>` : "";
-      const stack =
-        row.lineSpan > 1 ? `<span class="stack-badge">堆栈 ${row.lineSpan} 行</span>` : "";
-      return `
-      <tr>
-        <td class="num">${row.lineNo}</td>
-        <td class="lvl"><span class="badge badge-${row.level}">${row.level}</span>${dup}</td>
-        <td class="line-content">${highlight(row.raw, matcher)}${stack}</td>
-      </tr>`;
-    })
+    .map((row) =>
+      renderPreviewRow(row, matcher, {
+        expandedStack: state.expandedRows.has(row.lineNo),
+        expandedDiagnostic: state.expandedDiagnostics.has(row.lineNo),
+      })
+    )
     .join("");
 
   if (!filtered.length) {
     previewBody.innerHTML =
       '<tr><td colspan="3" class="muted">没有匹配的日志行</td></tr>';
   }
+
+  previewBody.querySelectorAll("[data-action]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const lineNo = Number(btn.dataset.lineNo);
+      if (btn.dataset.action === "toggle-stack") {
+        toggleExpandedSet(state.expandedRows, lineNo);
+      }
+      if (btn.dataset.action === "toggle-diagnostic") {
+        toggleExpandedSet(state.expandedDiagnostics, lineNo);
+      }
+      renderPreview();
+    });
+  });
 
   renderActiveFilters(filtered.length);
 
@@ -857,6 +949,92 @@ function renderPreview() {
     meta += ` · 共 ${state.result.events} 条事件 / ${state.result.totalLines} 行`;
   }
   previewMeta.textContent = meta;
+}
+
+function renderPreviewRow(row, matcher, opts = {}) {
+  const key = row.lineNo;
+  const diagnostic = findDiagnostic(row);
+  const hasStack = row.lineSpan > 1;
+  const dup = row.count > 1 ? `<span class="dup-badge">×${row.count}</span>` : "";
+  const summary = opts.expandedStack ? row.raw : previewSummary(row.raw);
+  const stack = hasStack
+    ? `<button class="stack-badge detail-toggle" type="button" data-action="toggle-stack" data-line-no="${key}">${
+        opts.expandedStack ? "收起" : "堆栈"
+      } ${row.lineSpan} 行</button>`
+    : "";
+  const diagnosticButton = diagnostic
+    ? `<button class="diagnostic-badge detail-toggle" type="button" data-action="toggle-diagnostic" data-line-no="${key}">诊断建议</button>`
+    : "";
+  const detailRows = [];
+
+  if (opts.expandedStack && hasStack) {
+    detailRows.push(`
+      <tr class="preview-detail-row">
+        <td></td>
+        <td colspan="2">
+          <pre class="stack-detail">${highlight(row.raw, matcher)}</pre>
+        </td>
+      </tr>`);
+  }
+
+  if (opts.expandedDiagnostic && diagnostic) {
+    detailRows.push(renderDiagnosticDetail(diagnostic));
+  }
+
+  return `
+      <tr>
+        <td class="num">${row.lineNo}</td>
+        <td class="lvl"><span class="badge badge-${row.level}">${row.level}</span>${dup}</td>
+        <td class="line-content">${highlight(summary, matcher)}${stack}${diagnosticButton}</td>
+      </tr>${detailRows.join("")}`;
+}
+
+function previewSummary(raw) {
+  const summary = springBootFailureSummary(raw);
+  if (summary) return summary;
+  return raw.split(/\r?\n/)[0];
+}
+
+function findDiagnostic(row) {
+  if (!row || !ERROR_LEVELS.has(row.level)) return null;
+  const rule = DIAGNOSTIC_RULES.find((item) => item.match(row));
+  if (!rule) return null;
+  return {
+    id: rule.id,
+    title: rule.title,
+    reason: rule.reason(row),
+    details: rule.details,
+    solutions: rule.solutions,
+  };
+}
+
+function renderDiagnosticDetail(diagnostic) {
+  return `
+      <tr class="preview-detail-row">
+        <td></td>
+        <td colspan="2">
+          <div class="diagnostic-detail">
+            <strong>${escapeHtml(diagnostic.title)}</strong>
+            <p>${escapeHtml(diagnostic.reason)}</p>
+            ${renderDiagnosticList("常见原因", diagnostic.details)}
+            ${renderDiagnosticList("解决方案", diagnostic.solutions)}
+          </div>
+        </td>
+      </tr>`;
+}
+
+function renderDiagnosticList(title, items) {
+  if (!items?.length) return "";
+  return `
+    <div class="diagnostic-section">
+      <span>${escapeHtml(title)}</span>
+      <ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    </div>`;
+}
+
+function toggleExpandedSet(set, value) {
+  if (set.has(value)) set.delete(value);
+  else set.add(value);
 }
 
 // Render chips for the currently-active filters plus a clear-all control.
