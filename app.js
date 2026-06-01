@@ -25,7 +25,10 @@ const sampleBody = document.getElementById("sampleBody");
 const sampleClose = document.getElementById("sampleClose");
 
 const searchInput = document.getElementById("searchInput");
+const searchErrorEl = document.getElementById("searchError");
+const logicSeg = document.getElementById("logicSeg");
 const levelFiltersEl = document.getElementById("levelFilters");
+const activeFiltersEl = document.getElementById("activeFilters");
 const previewBody = document.getElementById("previewBody");
 const previewMeta = document.getElementById("previewMeta");
 
@@ -109,6 +112,9 @@ let state = {
   granularity: "hour",
   activeLevels: new Set(LEVELS.concat(["OTHER"])),
   search: "",
+  searchMode: "plain", // "plain" (keyword) | "regex"
+  searchLogic: "and", // "and" | "or" — how multiple plain keywords combine
+  timeWindow: null, // { key, granularity } — selected trend bucket, or null
   lastInput: null, // { text, fileCount, label } — for re-analysis on option change
 };
 
@@ -248,7 +254,9 @@ function runAnalysis(text, fileCount, label) {
   state.result = summarize(rows, fileCount);
   state.activeLevels = new Set(LEVELS.concat(["OTHER"]));
   state.search = "";
+  state.timeWindow = null;
   searchInput.value = "";
+  clearSearchError();
 
   emptyState.hidden = true;
   resultsEl.hidden = false;
@@ -656,28 +664,68 @@ function renderTrend() {
     trendChart.innerHTML = '<p class="muted">未检测到错误趋势数据</p>';
     return;
   }
+  const gran = state.granularity;
+  const selectedKey =
+    state.timeWindow && state.timeWindow.granularity === gran
+      ? state.timeWindow.key
+      : null;
   const maxCount = Math.max(...trend.map(([, count]) => count), 1);
   trendChart.innerHTML = trend
     .map(([label, count]) => {
       const width = Math.max((count / maxCount) * 100, MIN_BAR_WIDTH_PERCENT);
+      const selected = label === selectedKey ? " is-selected" : "";
       return `
-        <div class="bar-row">
-          <div class="bar-label" title="${escapeHtml(label)}">${escapeHtml(label)}</div>
+        <div class="bar-row clickable${selected}" role="button" tabindex="0"
+             data-key="${escapeHtml(label)}" title="点击按「${escapeHtml(label)}」过滤">
+          <div class="bar-label">${escapeHtml(label)}</div>
           <div class="bar-track"><div class="bar" style="width:${width}%"></div></div>
           <div class="bar-value">${count}</div>
         </div>`;
     })
     .join("");
+
+  trendChart.querySelectorAll(".bar-row.clickable").forEach((row) => {
+    const toggle = () => toggleTimeWindow(row.dataset.key);
+    row.addEventListener("click", toggle);
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggle();
+      }
+    });
+  });
+}
+
+// Select a trend bucket as a time filter; clicking the selected bucket clears it.
+function toggleTimeWindow(key) {
+  const gran = state.granularity;
+  if (
+    state.timeWindow &&
+    state.timeWindow.granularity === gran &&
+    state.timeWindow.key === key
+  ) {
+    state.timeWindow = null;
+  } else {
+    state.timeWindow = { key, granularity: gran };
+  }
+  renderTrend();
+  renderPreview();
 }
 
 document.querySelectorAll(".seg-btn").forEach((btn) => {
+  if (!btn.dataset.granularity) return; // skip AND/OR logic buttons
   btn.addEventListener("click", () => {
     document
-      .querySelectorAll(".seg-btn")
+      .querySelectorAll(".seg-btn[data-granularity]")
       .forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     state.granularity = btn.dataset.granularity;
+    // A bucket selected under the other granularity no longer maps cleanly.
+    if (state.timeWindow && state.timeWindow.granularity !== state.granularity) {
+      state.timeWindow = null;
+    }
     renderTrend();
+    renderPreview();
   });
 });
 
@@ -706,16 +754,77 @@ function renderLevelFilters() {
 }
 
 searchInput.addEventListener("input", () => {
-  state.search = searchInput.value.trim().toLowerCase();
+  state.search = searchInput.value.trim();
   renderPreview();
 });
 
+document.querySelectorAll('input[name="searchMode"]').forEach((radio) => {
+  radio.addEventListener("change", () => {
+    if (!radio.checked) return;
+    state.searchMode = radio.value;
+    // AND/OR only applies to multi-keyword plain search.
+    logicSeg.classList.toggle("disabled", state.searchMode !== "plain");
+    renderPreview();
+  });
+});
+
+logicSeg.querySelectorAll(".seg-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    logicSeg
+      .querySelectorAll(".seg-btn")
+      .forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    state.searchLogic = btn.dataset.logic;
+    renderPreview();
+  });
+});
+
+// Build a matcher for the current search query/mode. Returns null when there is
+// no active search constraint (empty query or an invalid regex we ignore).
+function buildSearchMatcher() {
+  const query = state.search;
+  if (!query) {
+    clearSearchError();
+    return null;
+  }
+
+  if (state.searchMode === "regex") {
+    try {
+      const re = new RegExp(query, "i");
+      clearSearchError();
+      return { test: (raw) => re.test(raw), regex: re };
+    } catch (err) {
+      showSearchError(`正则表达式无效：${err.message}`);
+      return null; // fall back to no-search so the app stays usable
+    }
+  }
+
+  clearSearchError();
+  const terms = query.split(/\s+/).filter(Boolean);
+  const lowered = terms.map((t) => t.toLowerCase());
+  const test = (raw) => {
+    const hay = raw.toLowerCase();
+    return state.searchLogic === "or"
+      ? lowered.some((t) => hay.includes(t))
+      : lowered.every((t) => hay.includes(t));
+  };
+  return { test, terms };
+}
+
+function rowInTimeWindow(row) {
+  if (!state.timeWindow) return true;
+  const key =
+    state.timeWindow.granularity === "day" ? row.dayKey : row.hourKey;
+  return key === state.timeWindow.key;
+}
+
 function renderPreview() {
-  const search = state.search;
+  const matcher = buildSearchMatcher();
   const filtered = state.rows.filter(
     (row) =>
       state.activeLevels.has(row.level) &&
-      (search === "" || row.raw.toLowerCase().includes(search))
+      rowInTimeWindow(row) &&
+      (!matcher || matcher.test(row.raw))
   );
 
   const shown = filtered.slice(0, PREVIEW_LIMIT);
@@ -728,7 +837,7 @@ function renderPreview() {
       <tr>
         <td class="num">${row.lineNo}</td>
         <td class="lvl"><span class="badge badge-${row.level}">${row.level}</span>${dup}</td>
-        <td class="line-content">${highlight(row.raw, search)}${stack}</td>
+        <td class="line-content">${highlight(row.raw, matcher)}${stack}</td>
       </tr>`;
     })
     .join("");
@@ -737,6 +846,8 @@ function renderPreview() {
     previewBody.innerHTML =
       '<tr><td colspan="3" class="muted">没有匹配的日志行</td></tr>';
   }
+
+  renderActiveFilters(filtered.length);
 
   let meta = `显示 ${shown.length} / ${filtered.length} 条`;
   if (filtered.length > PREVIEW_LIMIT) {
@@ -748,11 +859,96 @@ function renderPreview() {
   previewMeta.textContent = meta;
 }
 
-function highlight(text, search) {
+// Render chips for the currently-active filters plus a clear-all control.
+function renderActiveFilters(matchCount) {
+  const chips = [];
+  if (state.timeWindow) {
+    const granLabel = state.timeWindow.granularity === "day" ? "按天" : "按小时";
+    chips.push(
+      `<button class="filter-chip" data-clear="time" type="button">时段（${granLabel}）：${escapeHtml(
+        state.timeWindow.key
+      )} ✕</button>`
+    );
+  }
+  const inactiveLevels = LEVELS.concat(["OTHER"]).filter(
+    (lvl) => state.result?.levels.get(lvl) && !state.activeLevels.has(lvl)
+  );
+  if (inactiveLevels.length) {
+    chips.push(
+      `<span class="filter-chip muted-chip">已隐藏级别：${inactiveLevels.join("、")}</span>`
+    );
+  }
+  if (state.search) {
+    const modeLabel = state.searchMode === "regex" ? "正则" : "关键字";
+    chips.push(
+      `<button class="filter-chip" data-clear="search" type="button">${modeLabel}：${escapeHtml(
+        state.search
+      )} ✕</button>`
+    );
+  }
+
+  if (!chips.length) {
+    activeFiltersEl.hidden = true;
+    activeFiltersEl.innerHTML = "";
+    return;
+  }
+
+  activeFiltersEl.hidden = false;
+  activeFiltersEl.innerHTML =
+    `<span class="muted small">命中 ${matchCount} 条 ·</span>` +
+    chips.join("") +
+    `<button class="filter-chip clear-all" data-clear="all" type="button">清除全部</button>`;
+
+  activeFiltersEl.querySelectorAll("[data-clear]").forEach((el) => {
+    el.addEventListener("click", () => clearFilter(el.dataset.clear));
+  });
+}
+
+function clearFilter(kind) {
+  if (kind === "time" || kind === "all") state.timeWindow = null;
+  if (kind === "search" || kind === "all") {
+    state.search = "";
+    searchInput.value = "";
+    clearSearchError();
+  }
+  if (kind === "all") {
+    state.activeLevels = new Set(LEVELS.concat(["OTHER"]));
+    levelFiltersEl
+      .querySelectorAll("input")
+      .forEach((cb) => (cb.checked = true));
+  }
+  renderTrend();
+  renderPreview();
+}
+
+function showSearchError(msg) {
+  searchErrorEl.textContent = msg;
+  searchErrorEl.hidden = false;
+}
+
+function clearSearchError() {
+  searchErrorEl.hidden = true;
+  searchErrorEl.textContent = "";
+}
+
+function highlight(text, matcher) {
   const escaped = escapeHtml(text);
-  if (!search) return escaped;
-  const safe = escapeHtml(search).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return escaped.replace(new RegExp(safe, "gi"), (m) => `<mark>${m}</mark>`);
+  if (!matcher) return escaped;
+
+  if (matcher.regex) {
+    const re = new RegExp(matcher.regex.source, "gi");
+    return escaped.replace(re, (m) => (m ? `<mark>${m}</mark>` : m));
+  }
+
+  if (matcher.terms && matcher.terms.length) {
+    const alt = matcher.terms
+      .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .filter(Boolean)
+      .join("|");
+    if (!alt) return escaped;
+    return escaped.replace(new RegExp(alt, "gi"), (m) => `<mark>${m}</mark>`);
+  }
+  return escaped;
 }
 
 // ---------- Export ----------
