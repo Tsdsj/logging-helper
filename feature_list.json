@@ -166,7 +166,7 @@
       "Verify in the browser that the Spring Boot startup failure appears in the timeline."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "timeline-click-filter",

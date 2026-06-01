@@ -4,7 +4,7 @@
 - Log intelligence planning queue initialized with `$Task_init`.
 
 ## First Pending Task
-- `event-timeline-baseline`
+- `timeline-click-filter`
 
 ## Recommended Next Reads
 - `AGENTS.md`
@@ -31,3 +31,4 @@
 - Completed `custom-diagnostics-export-template`: the custom diagnostics toolbar now downloads a `diagnostics-custom-template.json` file generated from a pure template helper, and the generated template validates with the existing diagnostics loader.
 - Completed `severity-labels-core`: ERROR/FATAL preview rows now show Critical/High/Medium/Low severity labels from a reusable helper covering startup failures, out-of-memory, database connectivity, fatal events, and generic errors.
 - Completed `severity-summary-card`: analysis now computes severity counts from parsed rows and renders a compact severity overview above the level distribution, hidden automatically when there are no ERROR/FATAL events.
+- Completed `event-timeline-baseline`: parsed rows now feed a compact key-event timeline for WARN/ERROR/FATAL, startup failures, shutdown, and retry messages with a readable limit and omitted-count note.

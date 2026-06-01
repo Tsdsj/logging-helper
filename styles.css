@@ -395,6 +395,44 @@ button:active {
   font-size: 18px;
 }
 
+/* ---------- Event timeline ---------- */
+.event-timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.event-timeline li {
+  display: grid;
+  grid-template-columns: 132px 72px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.event-timeline li:last-child {
+  border-bottom: 0;
+}
+
+.timeline-time {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-message {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  word-break: break-word;
+}
+
+.timeline-omitted {
+  margin: 10px 0 0;
+}
+
 /* ---------- Level chips ---------- */
 .level-chips {
   display: flex;

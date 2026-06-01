@@ -46,6 +46,28 @@ export function renderSeveritySummaryHtml(counts) {
     </div>`;
 }
 
+export function renderTimelineHtml(timeline) {
+  if (!timeline?.items?.length) return "";
+  return `
+    <ol class="event-timeline">
+      ${timeline.items
+        .map(
+          (item) => `
+          <li>
+            <span class="timeline-time">${escapeHtml(item.time)}</span>
+            <span class="badge badge-${escapeHtml(item.level)}">${escapeHtml(item.level)}</span>
+            <span class="timeline-message">${escapeHtml(item.message)}</span>
+          </li>`
+        )
+        .join("")}
+    </ol>
+    ${
+      timeline.omittedCount
+        ? `<p class="muted small timeline-omitted">另有 ${timeline.omittedCount} 条关键事件未显示</p>`
+        : ""
+    }`;
+}
+
 export function levelColor(lvl) {
   const map = {
     TRACE: "var(--lvl-trace)",
