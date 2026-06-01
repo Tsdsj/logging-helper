@@ -294,6 +294,128 @@ button:active {
   accent-color: var(--primary);
 }
 
+/* ---------- Custom parse rules ---------- */
+.custom-rules {
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.custom-rules > summary {
+  cursor: pointer;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  user-select: none;
+  list-style: none;
+}
+
+.custom-rules > summary::-webkit-details-marker {
+  display: none;
+}
+
+.custom-rules > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.custom-rules[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.cr-body {
+  padding: 0 14px 14px;
+  display: grid;
+  gap: 16px;
+}
+
+.cr-section {
+  display: grid;
+  gap: 8px;
+}
+
+.cr-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.cr-list {
+  display: grid;
+  gap: 8px;
+}
+
+.cr-rule {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.cr-rule .lr-error,
+.cr-section > .cr-error {
+  grid-column: 1 / -1;
+}
+
+.cr-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.cr-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.cr-input.invalid {
+  border-color: var(--lvl-error);
+}
+
+.lr-level {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.cr-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--lvl-error);
+}
+
+.cr-empty {
+  margin: 0;
+}
+
+.cr-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cr-head code,
+.muted code {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12px;
+}
+
 .file-list {
   list-style: none;
   margin: 14px 0 0;
