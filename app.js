@@ -15,6 +15,7 @@ import {
   renderTrendChart,
 } from "./js/renderers.mjs";
 import { buildPatternGroups } from "./js/patterns.mjs";
+import { BUILT_IN_SAMPLE_LOGS, combinedSampleLog, findSampleLog } from "./js/sample-logs.mjs";
 import { escapeHtml, formatBytes } from "./js/utils.mjs";
 
 // ---------- DOM ----------
@@ -22,6 +23,7 @@ const fileInput = document.getElementById("logFile");
 const customDiagnosticsFile = document.getElementById("customDiagnosticsFile");
 const dropZone = document.getElementById("dropZone");
 const analyzeBtn = document.getElementById("analyzeBtn");
+const sampleSelect = document.getElementById("sampleSelect");
 const sampleBtn = document.getElementById("sampleBtn");
 const clearBtn = document.getElementById("clearBtn");
 const customDiagnosticsBtn = document.getElementById("customDiagnosticsBtn");
@@ -70,20 +72,6 @@ let workerJobSeq = 0;
 let pendingJob = null;
 
 const PREVIEW_LIMIT = 500;
-const SAMPLE_LOG = `2024-05-21 08:01:12 INFO  service started on port 8080
-2024-05-21 08:03:45 DEBUG cache warm-up complete
-2024-05-21 08:15:02 WARN  slow query detected (1200ms)
-2024-05-21 08:31:09 ERROR DatabaseTimeout while fetching user profile
-2024-05-21 08:31:10 ERROR DatabaseTimeout retry failed
-2024-05-21 09:05:44 INFO  scheduled job finished
-2024-05-21 09:22:18 ERROR NullPointer in OrderService.checkout
-2024-05-21 09:48:51 WARN  memory usage at 85%
-2024-05-21 10:02:33 FATAL OutOfMemory: heap space exhausted
-2024-05-21 10:11:07 ERROR DatabaseTimeout while writing audit log
-2024-05-21 11:30:00 INFO  health check ok
-2024-05-22 00:14:22 ERROR PaymentGatewayError code=502
-2024-05-22 00:15:01 ERROR PaymentGatewayError code=502
-2024-05-22 03:40:19 FATAL Unhandled exception in worker thread`;
 
 const state = {
   rows: [],
@@ -112,10 +100,28 @@ init();
 
 async function init() {
   applyTheme(savedTheme());
+  populateSampleSelect();
   bindEvents();
   state.builtInDiagnosticRules = await loadKnowledgeBase();
   refreshDiagnosticRules();
   if (state.result) renderPreview();
+}
+
+function populateSampleSelect() {
+  if (!sampleSelect) return;
+  sampleSelect.innerHTML = "";
+
+  const allOption = document.createElement("option");
+  allOption.value = "all";
+  allOption.textContent = `全部内置示例（${BUILT_IN_SAMPLE_LOGS.length} 份）`;
+  sampleSelect.appendChild(allOption);
+
+  for (const sample of BUILT_IN_SAMPLE_LOGS) {
+    const option = document.createElement("option");
+    option.value = sample.id;
+    option.textContent = sample.label;
+    sampleSelect.appendChild(option);
+  }
 }
 
 async function loadKnowledgeBase() {
@@ -284,9 +290,24 @@ async function analyzeSelectedFiles() {
 }
 
 function loadSample() {
+  const selected = selectedSampleLog();
   renderFileList(null);
   fileInput.value = "";
-  runAnalysis(SAMPLE_LOG, 1, "示例日志");
+  runAnalysis(selected.content, selected.fileCount, selected.label);
+}
+
+function selectedSampleLog() {
+  const selectedId = sampleSelect?.value || "all";
+  if (selectedId === "all") return combinedSampleLog();
+
+  const sample = findSampleLog(selectedId);
+  if (!sample) return combinedSampleLog();
+
+  return {
+    label: sample.label,
+    fileCount: 1,
+    content: sample.content,
+  };
 }
 
 function readFileWithProgress(file, onProgress) {

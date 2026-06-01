@@ -206,5 +206,31 @@
     ],
     "budget_minutes": 10,
     "passes": true
+  },
+  {
+    "task_id": "built-in-framework-sample-logs",
+    "task_type": "frontend",
+    "description": "Provide several longer built-in sample logs for different languages and frameworks.",
+    "steps": [
+      "Move built-in sample log content into a reusable sample catalog module.",
+      "Add a sample selector near the existing load-sample button with an all-samples option.",
+      "Include longer samples for Spring Boot, FastAPI, Node/Pino, Go/Zap, ASP.NET Core, and Android logcat.",
+      "Add regression coverage that parses every sample and verifies multiple levels, failures, and timestamps."
+    ],
+    "budget_minutes": 10,
+    "passes": true
+  },
+  {
+    "task_id": "expanded-diagnostics-knowledge-base",
+    "task_type": "frontend",
+    "description": "Expand built-in diagnostics coverage across common languages, frameworks, runtimes, and infrastructure errors.",
+    "steps": [
+      "Collect diagnostic rule candidates across JVM, Python, Node, Go, .NET, PHP, Ruby, databases, queues, containers, Kubernetes, TLS, and DNS.",
+      "Append deduplicated rules to `diagnostics.json` with actionable reasons, details, and solutions.",
+      "Add regression coverage for representative framework and infrastructure errors.",
+      "Run the diagnostics tests and the full Windows validation entrypoint."
+    ],
+    "budget_minutes": 15,
+    "passes": true
   }
 ]

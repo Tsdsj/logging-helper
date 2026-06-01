@@ -3,7 +3,11 @@
     {
       "id": "port-already-in-use",
       "title": "端口被占用",
-      "tags": ["java", "spring-boot", "web-server"],
+      "tags": [
+        "java",
+        "spring-boot",
+        "web-server"
+      ],
       "match": {
         "any": [
           "\\bWeb server failed to start\\.\\s+Port\\s+\\d+\\s+was already in use\\.",
@@ -29,7 +33,11 @@
     {
       "id": "spring-no-such-bean",
       "title": "Spring Bean 未找到",
-      "tags": ["java", "spring", "dependency-injection"],
+      "tags": [
+        "java",
+        "spring",
+        "dependency-injection"
+      ],
       "match": {
         "any": [
           "NoSuchBeanDefinitionException",
@@ -54,9 +62,15 @@
     {
       "id": "spring-bean-creation",
       "title": "Spring Bean 创建失败",
-      "tags": ["java", "spring"],
+      "tags": [
+        "java",
+        "spring"
+      ],
       "match": {
-        "any": ["BeanCreationException", "Error creating bean with name"]
+        "any": [
+          "BeanCreationException",
+          "Error creating bean with name"
+        ]
       },
       "variables": {
         "bean": "bean with name '([^']+)'"
@@ -75,9 +89,15 @@
     {
       "id": "spring-unsatisfied-dependency",
       "title": "Spring 依赖注入失败",
-      "tags": ["java", "spring"],
+      "tags": [
+        "java",
+        "spring"
+      ],
       "match": {
-        "any": ["UnsatisfiedDependencyException", "Unsatisfied dependency expressed through"]
+        "any": [
+          "UnsatisfiedDependencyException",
+          "Unsatisfied dependency expressed through"
+        ]
       },
       "variables": {
         "bean": "bean with name '([^']+)'"
@@ -96,9 +116,15 @@
     {
       "id": "java-class-not-found",
       "title": "Java 类缺失",
-      "tags": ["java", "classpath"],
+      "tags": [
+        "java",
+        "classpath"
+      ],
       "match": {
-        "any": ["ClassNotFoundException", "NoClassDefFoundError"]
+        "any": [
+          "ClassNotFoundException",
+          "NoClassDefFoundError"
+        ]
       },
       "variables": {
         "className": "(?:ClassNotFoundException|NoClassDefFoundError):\\s*([\\w.$/]+)"
@@ -117,9 +143,13 @@
     {
       "id": "java-null-pointer",
       "title": "Java 空指针",
-      "tags": ["java"],
+      "tags": [
+        "java"
+      ],
       "match": {
-        "any": ["NullPointerException"]
+        "any": [
+          "NullPointerException"
+        ]
       },
       "variables": {},
       "reason": "代码访问了 null 对象的方法或字段。",
@@ -136,9 +166,17 @@
     {
       "id": "java-out-of-memory",
       "title": "JVM 内存溢出",
-      "tags": ["java", "jvm"],
+      "tags": [
+        "java",
+        "jvm"
+      ],
       "match": {
-        "any": ["OutOfMemoryError", "Java heap space", "GC overhead limit exceeded", "Metaspace"]
+        "any": [
+          "OutOfMemoryError",
+          "Java heap space",
+          "GC overhead limit exceeded",
+          "Metaspace"
+        ]
       },
       "variables": {},
       "reason": "JVM 可用内存不足，可能是堆、元空间、直接内存或线程数量达到上限。",
@@ -155,9 +193,17 @@
     {
       "id": "database-access-denied",
       "title": "数据库账号无权限或密码错误",
-      "tags": ["database", "mysql", "postgres"],
+      "tags": [
+        "database",
+        "mysql",
+        "postgres"
+      ],
       "match": {
-        "any": ["Access denied for user", "password authentication failed for user", "permission denied for database"]
+        "any": [
+          "Access denied for user",
+          "password authentication failed for user",
+          "permission denied for database"
+        ]
       },
       "variables": {
         "user": "user '([^']+)'|user \"([^\"]+)\""
@@ -176,9 +222,17 @@
     {
       "id": "database-connection-refused",
       "title": "数据库连接被拒绝",
-      "tags": ["database", "network"],
+      "tags": [
+        "database",
+        "network"
+      ],
       "match": {
-        "any": ["Connection refused", "ECONNREFUSED", "could not connect to server", "Communications link failure"]
+        "any": [
+          "Connection refused",
+          "ECONNREFUSED",
+          "could not connect to server",
+          "Communications link failure"
+        ]
       },
       "variables": {},
       "reason": "应用无法连接目标服务，目标端口没有服务监听、网络不通或服务拒绝连接。",
@@ -195,9 +249,16 @@
     {
       "id": "sql-syntax-error",
       "title": "SQL 语法错误",
-      "tags": ["database", "sql"],
+      "tags": [
+        "database",
+        "sql"
+      ],
       "match": {
-        "any": ["SQLSyntaxErrorException", "syntax error at or near", "You have an error in your SQL syntax"]
+        "any": [
+          "SQLSyntaxErrorException",
+          "syntax error at or near",
+          "You have an error in your SQL syntax"
+        ]
       },
       "variables": {},
       "reason": "数据库无法解析当前 SQL，可能是语法、方言、关键字或动态 SQL 拼接错误。",
@@ -214,9 +275,17 @@
     {
       "id": "redis-connection-failure",
       "title": "Redis 连接失败",
-      "tags": ["redis", "cache"],
+      "tags": [
+        "redis",
+        "cache"
+      ],
       "match": {
-        "any": ["RedisConnectionFailureException", "Unable to connect to Redis", "NOAUTH Authentication required", "WRONGPASS invalid username-password pair"]
+        "any": [
+          "RedisConnectionFailureException",
+          "Unable to connect to Redis",
+          "NOAUTH Authentication required",
+          "WRONGPASS invalid username-password pair"
+        ]
       },
       "variables": {},
       "reason": "应用无法连接或认证 Redis，可能是地址端口、密码、ACL 用户或网络配置错误。",
@@ -233,9 +302,14 @@
     {
       "id": "python-module-not-found",
       "title": "Python 模块缺失",
-      "tags": ["python"],
+      "tags": [
+        "python"
+      ],
       "match": {
-        "any": ["ModuleNotFoundError: No module named", "ImportError: No module named"]
+        "any": [
+          "ModuleNotFoundError: No module named",
+          "ImportError: No module named"
+        ]
       },
       "variables": {
         "module": "No module named '([^']+)'"
@@ -254,9 +328,14 @@
     {
       "id": "python-indentation-error",
       "title": "Python 缩进错误",
-      "tags": ["python"],
+      "tags": [
+        "python"
+      ],
       "match": {
-        "any": ["IndentationError", "TabError"]
+        "any": [
+          "IndentationError",
+          "TabError"
+        ]
       },
       "variables": {},
       "reason": "Python 源码缩进不合法，或混用了 tab 和空格。",
@@ -273,9 +352,16 @@
     {
       "id": "python-django-migration-missing",
       "title": "Django 数据库迁移未应用",
-      "tags": ["python", "django"],
+      "tags": [
+        "python",
+        "django"
+      ],
       "match": {
-        "any": ["no such table", "relation .* does not exist", "django.db.utils.ProgrammingError"]
+        "any": [
+          "no such table",
+          "relation .* does not exist",
+          "django.db.utils.ProgrammingError"
+        ]
       },
       "variables": {},
       "reason": "Django 访问的表或字段不存在，常见于迁移文件未生成或未执行。",
@@ -290,11 +376,44 @@
       ]
     },
     {
+      "id": "typescript-module-resolution",
+      "title": "TypeScript 模块解析失败",
+      "tags": [
+        "typescript",
+        "module-resolution"
+      ],
+      "match": {
+        "any": [
+          "TS2307: Cannot find module .* or its corresponding type declarations",
+          "error TS2307: Cannot find module"
+        ]
+      },
+      "variables": {
+        "module": "Cannot find module ['\"]([^'\"]+)['\"]"
+      },
+      "reason": "TypeScript 无法解析模块 {{module}} 或对应类型声明。",
+      "details": [
+        "可能是依赖未安装、路径别名未配置、类型声明缺失或 ESM/CJS exports 不匹配。",
+        "运行时能找到但 TypeScript 找不到，通常是 tsconfig 与打包器 alias 不一致。"
+      ],
+      "solutions": [
+        "确认依赖已安装并存在于当前 workspace。",
+        "检查 `tsconfig.paths`、`baseUrl`、`moduleResolution` 和包的 `exports/types`。",
+        "同步 Vite/Webpack/Jest/ts-node 的别名配置。"
+      ]
+    },
+    {
       "id": "node-module-not-found",
       "title": "Node.js 模块缺失",
-      "tags": ["node", "javascript"],
+      "tags": [
+        "node",
+        "javascript"
+      ],
       "match": {
-        "any": ["Cannot find module", "ERR_MODULE_NOT_FOUND"]
+        "any": [
+          "Cannot find module",
+          "ERR_MODULE_NOT_FOUND"
+        ]
       },
       "variables": {
         "module": "Cannot find module '([^']+)'|Cannot find package '([^']+)'"
@@ -313,9 +432,16 @@
     {
       "id": "node-unhandled-rejection",
       "title": "Node.js Promise 未处理异常",
-      "tags": ["node", "javascript"],
+      "tags": [
+        "node",
+        "javascript"
+      ],
       "match": {
-        "any": ["UnhandledPromiseRejection", "ERR_UNHANDLED_REJECTION", "unhandledRejection"]
+        "any": [
+          "UnhandledPromiseRejection",
+          "ERR_UNHANDLED_REJECTION",
+          "unhandledRejection"
+        ]
       },
       "variables": {},
       "reason": "Promise 异步任务抛错后没有被 catch 或 await 外层捕获。",
@@ -332,9 +458,15 @@
     {
       "id": "node-heap-out-of-memory",
       "title": "Node.js 堆内存不足",
-      "tags": ["node", "javascript"],
+      "tags": [
+        "node",
+        "javascript"
+      ],
       "match": {
-        "any": ["JavaScript heap out of memory", "Allocation failed - JavaScript heap"]
+        "any": [
+          "JavaScript heap out of memory",
+          "Allocation failed - JavaScript heap"
+        ]
       },
       "variables": {},
       "reason": "Node.js V8 堆内存耗尽，通常是大对象、缓存、构建任务或内存泄漏造成。",
@@ -351,9 +483,13 @@
     {
       "id": "go-nil-pointer",
       "title": "Go nil 指针",
-      "tags": ["go"],
+      "tags": [
+        "go"
+      ],
       "match": {
-        "any": ["panic: runtime error: invalid memory address or nil pointer dereference"]
+        "any": [
+          "panic: runtime error: invalid memory address or nil pointer dereference"
+        ]
       },
       "variables": {},
       "reason": "Go 程序访问了 nil 指针，通常是结构体指针、接口值或依赖对象未初始化。",
@@ -370,9 +506,15 @@
     {
       "id": "go-data-race",
       "title": "Go 数据竞争",
-      "tags": ["go", "concurrency"],
+      "tags": [
+        "go",
+        "concurrency"
+      ],
       "match": {
-        "any": ["WARNING: DATA RACE", "fatal error: concurrent map writes"]
+        "any": [
+          "WARNING: DATA RACE",
+          "fatal error: concurrent map writes"
+        ]
       },
       "variables": {},
       "reason": "多个 goroutine 并发读写共享数据，缺少同步保护。",
@@ -389,9 +531,14 @@
     {
       "id": "dotnet-null-reference",
       "title": ".NET 空引用",
-      "tags": ["dotnet", "csharp"],
+      "tags": [
+        "dotnet",
+        "csharp"
+      ],
       "match": {
-        "any": ["NullReferenceException"]
+        "any": [
+          "NullReferenceException"
+        ]
       },
       "variables": {},
       "reason": ".NET 代码访问了 null 对象的成员。",
@@ -408,9 +555,15 @@
     {
       "id": "dotnet-di-missing",
       "title": ".NET 依赖注入未注册",
-      "tags": ["dotnet", "aspnetcore"],
+      "tags": [
+        "dotnet",
+        "aspnetcore"
+      ],
       "match": {
-        "any": ["Unable to resolve service for type", "No service for type .* has been registered"]
+        "any": [
+          "Unable to resolve service for type",
+          "No service for type .* has been registered"
+        ]
       },
       "variables": {
         "service": "type '([^']+)'|type \"([^\"]+)\""
@@ -429,9 +582,16 @@
     {
       "id": "php-class-not-found",
       "title": "PHP 类未找到",
-      "tags": ["php", "composer"],
+      "tags": [
+        "php",
+        "composer"
+      ],
       "match": {
-        "any": ["Class .* not found", "Interface .* not found", "Trait .* not found"]
+        "any": [
+          "Class .* not found",
+          "Interface .* not found",
+          "Trait .* not found"
+        ]
       },
       "variables": {},
       "reason": "PHP 自动加载无法找到目标类、接口或 trait。",
@@ -448,9 +608,18 @@
     {
       "id": "laravel-migration-missing",
       "title": "Laravel 表或字段缺失",
-      "tags": ["php", "laravel", "database"],
+      "tags": [
+        "php",
+        "laravel",
+        "database"
+      ],
       "match": {
-        "any": ["Base table or view not found", "Unknown column", "SQLSTATE\\[42S02\\]", "SQLSTATE\\[42S22\\]"]
+        "any": [
+          "Base table or view not found",
+          "Unknown column",
+          "SQLSTATE\\[42S02\\]",
+          "SQLSTATE\\[42S22\\]"
+        ]
       },
       "variables": {},
       "reason": "Laravel 访问的数据库表或字段不存在，通常是迁移未执行或代码与数据库版本不一致。",
@@ -467,9 +636,16 @@
     {
       "id": "ruby-bundler-missing-gem",
       "title": "Ruby Gem 缺失",
-      "tags": ["ruby", "rails"],
+      "tags": [
+        "ruby",
+        "rails"
+      ],
       "match": {
-        "any": ["Could not find gem", "LoadError: cannot load such file", "Bundler::GemNotFound"]
+        "any": [
+          "Could not find gem",
+          "LoadError: cannot load such file",
+          "Bundler::GemNotFound"
+        ]
       },
       "variables": {},
       "reason": "Ruby 运行环境缺少 Gem，或 Bundler 使用的 Gemfile.lock 与当前环境不一致。",
@@ -486,9 +662,17 @@
     {
       "id": "http-404-route-not-found",
       "title": "HTTP 路由不存在",
-      "tags": ["web", "http"],
+      "tags": [
+        "web",
+        "http"
+      ],
       "match": {
-        "any": ["\\b404\\b", "NotFoundHttpException", "Cannot GET /", "No route matches"]
+        "any": [
+          "\\b404\\b",
+          "NotFoundHttpException",
+          "Cannot GET /",
+          "No route matches"
+        ]
       },
       "variables": {},
       "reason": "请求路径没有匹配到后端路由，或反向代理转发到了错误服务。",
@@ -505,9 +689,15 @@
     {
       "id": "http-500-server-error",
       "title": "HTTP 500 服务端错误",
-      "tags": ["web", "http"],
+      "tags": [
+        "web",
+        "http"
+      ],
       "match": {
-        "any": ["\\b500\\b", "Internal Server Error"]
+        "any": [
+          "\\b500\\b",
+          "Internal Server Error"
+        ]
       },
       "variables": {},
       "reason": "服务端处理请求时抛出未处理异常，需要结合同一请求链路的后端堆栈定位。",
@@ -524,9 +714,15 @@
     {
       "id": "kubernetes-crashloop",
       "title": "Kubernetes CrashLoopBackOff",
-      "tags": ["kubernetes", "container"],
+      "tags": [
+        "kubernetes",
+        "container"
+      ],
       "match": {
-        "any": ["CrashLoopBackOff", "Back-off restarting failed container"]
+        "any": [
+          "CrashLoopBackOff",
+          "Back-off restarting failed container"
+        ]
       },
       "variables": {},
       "reason": "容器启动后反复退出，Kubernetes 正在退避重启。",
@@ -543,9 +739,17 @@
     {
       "id": "docker-image-pull",
       "title": "Docker/Kubernetes 镜像拉取失败",
-      "tags": ["docker", "kubernetes"],
+      "tags": [
+        "docker",
+        "kubernetes"
+      ],
       "match": {
-        "any": ["ImagePullBackOff", "ErrImagePull", "pull access denied", "manifest unknown"]
+        "any": [
+          "ImagePullBackOff",
+          "ErrImagePull",
+          "pull access denied",
+          "manifest unknown"
+        ]
       },
       "variables": {},
       "reason": "容器运行时无法拉取镜像，可能是镜像名/tag 错误、仓库权限不足或网络不可达。",
@@ -562,9 +766,16 @@
     {
       "id": "nginx-upstream-refused",
       "title": "Nginx 上游连接失败",
-      "tags": ["nginx", "reverse-proxy"],
+      "tags": [
+        "nginx",
+        "reverse-proxy"
+      ],
       "match": {
-        "any": ["connect\\(\\) failed .* while connecting to upstream", "upstream prematurely closed connection", "no live upstreams"]
+        "any": [
+          "connect\\(\\) failed .* while connecting to upstream",
+          "upstream prematurely closed connection",
+          "no live upstreams"
+        ]
       },
       "variables": {},
       "reason": "Nginx 无法连接或稳定读取上游服务，通常是上游未启动、端口错误、超时或连接被重置。",
@@ -576,6 +787,2931 @@
         "在 Nginx 所在环境中 curl upstream 地址验证连通性。",
         "检查 upstream 配置、服务端口、健康状态和容器网络。",
         "按需调整 `proxy_connect_timeout`、`proxy_read_timeout` 和负载均衡健康检查。"
+      ]
+    },
+    {
+      "id": "jvm-unsupported-class-version",
+      "title": "Java 版本不兼容",
+      "tags": [
+        "java",
+        "jvm",
+        "classpath"
+      ],
+      "match": {
+        "any": [
+          "UnsupportedClassVersionError",
+          "class file version \\d+\\.\\d+",
+          "has been compiled by a more recent version of the Java Runtime"
+        ]
+      },
+      "variables": {
+        "className": "UnsupportedClassVersionError:\\s*([\\w.$/]+)"
+      },
+      "reason": "运行时 JDK 版本低于编译 {{className}} 所需的版本，导致类无法加载。",
+      "details": [
+        "常见于本地、CI、容器镜像使用了不同 JDK 版本。",
+        "例如用 Java 17 编译，却在 Java 8 或 Java 11 上运行。"
+      ],
+      "solutions": [
+        "确认 `java -version` 与构建配置中的 `sourceCompatibility`、`targetCompatibility` 或 Maven compiler 配置一致。",
+        "升级运行环境 JDK，或降低项目编译目标版本。",
+        "检查 Dockerfile、CI 镜像和服务器上的默认 Java 版本。"
+      ]
+    },
+    {
+      "id": "jvm-stack-overflow",
+      "title": "JVM 栈溢出",
+      "tags": [
+        "java",
+        "jvm"
+      ],
+      "match": {
+        "any": [
+          "StackOverflowError"
+        ]
+      },
+      "reason": "线程调用栈耗尽，通常由无限递归、循环引用序列化或过深的调用链造成。",
+      "details": [
+        "如果堆栈中反复出现同一组方法，基本可以判断为递归未终止。",
+        "JSON 序列化双向关联对象也可能触发该问题。"
+      ],
+      "solutions": [
+        "检查堆栈中重复出现的方法，补充递归终止条件。",
+        "对实体双向关联使用 `@JsonIgnore`、DTO 或显式序列化边界。",
+        "确认为深调用链但逻辑正常时，再评估是否需要调整 `-Xss`。"
+      ]
+    },
+    {
+      "id": "java-nosuchmethod-version-conflict",
+      "title": "Java 依赖版本冲突",
+      "tags": [
+        "java",
+        "classpath",
+        "dependency"
+      ],
+      "match": {
+        "any": [
+          "NoSuchMethodError",
+          "NoSuchFieldError",
+          "IncompatibleClassChangeError"
+        ]
+      },
+      "variables": {
+        "symbol": "(?:NoSuchMethodError|NoSuchFieldError):\\s*([^\\r\\n]+)"
+      },
+      "reason": "运行时加载的类版本与编译时不一致，找不到符号 {{symbol}}。",
+      "details": [
+        "常见于传递依赖引入了旧版本 jar，或多个框架版本混用。",
+        "这类错误通常不是源码方法不存在，而是运行时 classpath 里加载了错误版本。"
+      ],
+      "solutions": [
+        "用 `mvn dependency:tree` 或 `gradle dependencies` 查找冲突版本。",
+        "通过 dependencyManagement、constraints 或 exclude 固定兼容版本。",
+        "确认打包产物中没有重复或旧版本 jar。"
+      ]
+    },
+    {
+      "id": "spring-placeholder-unresolved",
+      "title": "Spring 配置占位符未解析",
+      "tags": [
+        "java",
+        "spring",
+        "configuration"
+      ],
+      "match": {
+        "any": [
+          "Could not resolve placeholder",
+          "IllegalArgumentException: Could not resolve placeholder"
+        ]
+      },
+      "variables": {
+        "key": "placeholder '([^']+)'"
+      },
+      "reason": "配置项 {{key}} 没有在当前环境中提供，Spring 无法解析占位符。",
+      "details": [
+        "常见于环境变量、application profile、启动参数或配置中心缺失。",
+        "测试环境和生产环境 profile 不一致时尤其容易出现。"
+      ],
+      "solutions": [
+        "检查 `application.yml`、环境变量、启动参数和当前激活的 profile。",
+        "为非必需配置提供默认值，例如 `${key:default}`。",
+        "确认配置中心或 Secret 已正确挂载并被应用读取。"
+      ]
+    },
+    {
+      "id": "spring-configuration-bind-failed",
+      "title": "Spring 配置绑定失败",
+      "tags": [
+        "java",
+        "spring-boot",
+        "configuration"
+      ],
+      "match": {
+        "any": [
+          "ConfigurationPropertiesBindException",
+          "BindException: Failed to bind properties",
+          "Failed to bind properties under"
+        ]
+      },
+      "variables": {
+        "prefix": "properties under '([^']+)'"
+      },
+      "reason": "Spring Boot 无法把配置前缀 {{prefix}} 绑定到目标对象。",
+      "details": [
+        "通常是配置类型不匹配、枚举值写错、列表或 map 格式错误、必填字段为空。",
+        "错误详情里通常会指出具体字段和 rejected value。"
+      ],
+      "solutions": [
+        "检查报错字段的配置值类型是否与 Java 属性类型一致。",
+        "确认配置类有正确的 setter、构造函数绑定或 record 参数。",
+        "为配置类补充校验和更明确的默认值。"
+      ]
+    },
+    {
+      "id": "spring-circular-dependency",
+      "title": "Spring 循环依赖",
+      "tags": [
+        "java",
+        "spring",
+        "dependency-injection"
+      ],
+      "match": {
+        "any": [
+          "BeanCurrentlyInCreationException",
+          "The dependencies of some of the beans in the application context form a cycle",
+          "Requested bean is currently in creation"
+        ]
+      },
+      "reason": "多个 Spring Bean 互相依赖，容器无法确定安全的创建顺序。",
+      "details": [
+        "构造器注入形成环时最容易直接启动失败。",
+        "允许循环引用只能缓解部分场景，不是长期设计方案。"
+      ],
+      "solutions": [
+        "重构依赖方向，抽出第三个协作服务或接口。",
+        "避免两个服务互相调用核心业务逻辑。",
+        "临时排障可使用 `@Lazy`，但应优先消除循环设计。"
+      ]
+    },
+    {
+      "id": "spring-request-method-not-supported",
+      "title": "Spring 请求方法不支持",
+      "tags": [
+        "java",
+        "spring-mvc",
+        "http"
+      ],
+      "match": {
+        "any": [
+          "HttpRequestMethodNotSupportedException",
+          "Request method '[A-Z]+' not supported"
+        ]
+      },
+      "variables": {
+        "method": "Request method '([A-Z]+)' not supported"
+      },
+      "reason": "接口路径存在，但不支持当前 HTTP 方法 {{method}}。",
+      "details": [
+        "常见于前端把 GET/POST/PUT/DELETE 写错，或网关转发改变了方法。",
+        "也可能是 Controller 注解使用了错误的 `@GetMapping`、`@PostMapping` 等。"
+      ],
+      "solutions": [
+        "核对前端请求方法与后端 Controller 映射。",
+        "检查网关、Nginx 或代理是否改变请求方法。",
+        "为接口补充清晰的 API 测试用例。"
+      ]
+    },
+    {
+      "id": "spring-http-message-not-readable",
+      "title": "Spring 请求体解析失败",
+      "tags": [
+        "java",
+        "spring-mvc",
+        "json"
+      ],
+      "match": {
+        "any": [
+          "HttpMessageNotReadableException",
+          "JSON parse error",
+          "Required request body is missing"
+        ]
+      },
+      "reason": "Spring 无法读取或解析请求体，通常是 JSON 格式、Content-Type 或字段类型不正确。",
+      "details": [
+        "请求体为空、JSON 语法错误、日期格式不匹配都可能触发。",
+        "如果字段是枚举或数字，传入非法字符串也会失败。"
+      ],
+      "solutions": [
+        "检查请求 `Content-Type` 是否为 `application/json`。",
+        "把原始请求体复制到 JSON 校验工具或接口测试工具中验证。",
+        "为日期、枚举和复杂字段配置明确的反序列化规则。"
+      ]
+    },
+    {
+      "id": "hikari-connection-timeout",
+      "title": "HikariCP 连接池耗尽",
+      "tags": [
+        "java",
+        "spring",
+        "database",
+        "hikari"
+      ],
+      "match": {
+        "any": [
+          "HikariPool-\\d+ - Connection is not available",
+          "request timed out after \\d+ms",
+          "SQLTransientConnectionException: .*Connection is not available"
+        ]
+      },
+      "reason": "数据库连接池在超时时间内拿不到可用连接，可能是连接泄漏、慢 SQL 或池容量不足。",
+      "details": [
+        "这不一定表示数据库宕机，也可能是应用持有连接太久未释放。",
+        "高并发下慢查询会快速耗尽连接池。"
+      ],
+      "solutions": [
+        "检查慢 SQL、事务范围和连接是否及时关闭。",
+        "开启 Hikari leakDetectionThreshold 辅助定位连接泄漏。",
+        "结合数据库最大连接数，合理调整 `maximumPoolSize` 和超时时间。"
+      ]
+    },
+    {
+      "id": "hibernate-lazy-initialization",
+      "title": "Hibernate 懒加载会话已关闭",
+      "tags": [
+        "java",
+        "hibernate",
+        "jpa"
+      ],
+      "match": {
+        "any": [
+          "LazyInitializationException",
+          "could not initialize proxy .* no Session",
+          "failed to lazily initialize a collection"
+        ]
+      },
+      "reason": "Hibernate 在 Session 关闭后才访问懒加载字段，无法再从数据库加载关联数据。",
+      "details": [
+        "常见于 Controller 返回实体对象时触发序列化。",
+        "也常见于事务外访问关联集合或代理对象。"
+      ],
+      "solutions": [
+        "在事务内使用 fetch join、EntityGraph 或显式查询需要的字段。",
+        "返回 DTO，避免直接把 JPA 实体暴露给接口层。",
+        "谨慎使用 OpenSessionInView，优先明确查询边界。"
+      ]
+    },
+    {
+      "id": "hibernate-schema-validation",
+      "title": "Hibernate 表结构校验失败",
+      "tags": [
+        "java",
+        "hibernate",
+        "jpa",
+        "database"
+      ],
+      "match": {
+        "any": [
+          "SchemaManagementException",
+          "Schema-validation: missing table",
+          "Schema-validation: missing column",
+          "wrong column type encountered"
+        ]
+      },
+      "reason": "Hibernate 校验到实体映射与数据库真实表结构不一致。",
+      "details": [
+        "常见于实体字段已修改，但数据库迁移脚本未执行。",
+        "不同环境数据库结构不一致也会触发。"
+      ],
+      "solutions": [
+        "检查 Flyway/Liquibase/手工 DDL 是否已在目标库执行。",
+        "核对实体注解中的表名、列名、类型和 schema。",
+        "避免依赖自动建表掩盖迁移问题，保持迁移脚本可追踪。"
+      ]
+    },
+    {
+      "id": "hibernate-optimistic-lock",
+      "title": "Hibernate 乐观锁冲突",
+      "tags": [
+        "java",
+        "hibernate",
+        "jpa",
+        "concurrency"
+      ],
+      "match": {
+        "any": [
+          "OptimisticLockException",
+          "StaleObjectStateException",
+          "Row was updated or deleted by another transaction"
+        ]
+      },
+      "reason": "数据在当前事务提交前已被其他事务修改或删除，乐观锁版本不一致。",
+      "details": [
+        "常见于同一记录被多个请求同时编辑。",
+        "带 `@Version` 字段的实体会通过版本号检测并发修改。"
+      ],
+      "solutions": [
+        "在业务层捕获冲突并提示用户刷新后重试。",
+        "对关键更新设计幂等或重试策略。",
+        "确认更新流程没有使用过期实体覆盖新数据。"
+      ]
+    },
+    {
+      "id": "mybatis-invalid-bound-statement",
+      "title": "MyBatis Mapper 语句未找到",
+      "tags": [
+        "java",
+        "mybatis"
+      ],
+      "match": {
+        "any": [
+          "BindingException: Invalid bound statement \\(not found\\)",
+          "Invalid bound statement \\(not found\\)"
+        ]
+      },
+      "variables": {
+        "statement": "Invalid bound statement \\(not found\\):\\s*([\\w.$]+)"
+      },
+      "reason": "MyBatis 找不到 Mapper 方法 {{statement}} 对应的 SQL 语句。",
+      "details": [
+        "通常是 XML namespace 与接口全限定名不一致，或 statement id 与方法名不一致。",
+        "也可能是 mapper XML 没有被打包或扫描到。"
+      ],
+      "solutions": [
+        "检查 XML 的 `namespace` 是否等于 Mapper 接口全限定名。",
+        "确认 SQL 标签 id 与接口方法名一致。",
+        "检查 `mapper-locations`、资源目录和构建产物中是否包含 XML。"
+      ]
+    },
+    {
+      "id": "mybatis-parameter-not-found",
+      "title": "MyBatis 参数名未找到",
+      "tags": [
+        "java",
+        "mybatis",
+        "sql"
+      ],
+      "match": {
+        "any": [
+          "BindingException: Parameter '.*' not found",
+          "Available parameters are \\[.*\\]"
+        ]
+      },
+      "variables": {
+        "param": "Parameter '([^']+)' not found"
+      },
+      "reason": "MyBatis SQL 引用了参数 {{param}}，但方法入参中没有这个名称。",
+      "details": [
+        "多个参数未使用 `@Param` 时，MyBatis 只提供 param1、param2 等默认名称。",
+        "动态 SQL 中拼错参数名也会触发。"
+      ],
+      "solutions": [
+        "为多个 Mapper 方法参数显式添加 `@Param`。",
+        "核对 XML 中 `#{}`、`${}`、`<if test>` 的参数名。",
+        "避免使用 `${}` 拼接用户输入，优先使用 `#{}`。"
+      ]
+    },
+    {
+      "id": "mybatis-too-many-results",
+      "title": "MyBatis 查询结果数量异常",
+      "tags": [
+        "java",
+        "mybatis",
+        "database"
+      ],
+      "match": {
+        "any": [
+          "TooManyResultsException",
+          "Expected one result \\(or null\\) to be returned by selectOne\\(\\), but found"
+        ]
+      },
+      "reason": "`selectOne()` 期望最多返回一条记录，但实际查到了多条。",
+      "details": [
+        "通常是查询条件不唯一，或数据库缺少唯一约束。",
+        "这类问题可能表示数据质量已经偏离业务假设。"
+      ],
+      "solutions": [
+        "检查 SQL where 条件是否足够精确。",
+        "如果业务允许多条结果，改用 `selectList()` 并处理集合。",
+        "为应唯一的业务字段补充唯一索引和数据清理脚本。"
+      ]
+    },
+    {
+      "id": "maven-dependency-resolution",
+      "title": "Maven 依赖解析失败",
+      "tags": [
+        "java",
+        "maven",
+        "build"
+      ],
+      "match": {
+        "any": [
+          "Could not resolve dependencies",
+          "Could not find artifact",
+          "Failed to collect dependencies",
+          "DependencyResolutionException"
+        ]
+      },
+      "variables": {
+        "artifact": "Could not find artifact\\s+([^\\s]+)"
+      },
+      "reason": "Maven 无法解析依赖 {{artifact}}，构建无法继续。",
+      "details": [
+        "常见原因是版本号不存在、私服不可访问、settings.xml 配置错误或本地缓存损坏。",
+        "公司内网依赖通常还需要正确的镜像、认证和仓库地址。"
+      ],
+      "solutions": [
+        "确认 groupId、artifactId、version 是否存在。",
+        "检查 `~/.m2/settings.xml` 的 mirror、repository 和凭据。",
+        "必要时删除对应本地缓存目录后重新执行 `mvn -U`。"
+      ]
+    },
+    {
+      "id": "maven-surefire-test-failure",
+      "title": "Maven 测试阶段失败",
+      "tags": [
+        "java",
+        "maven",
+        "test"
+      ],
+      "match": {
+        "any": [
+          "There are test failures",
+          "maven-surefire-plugin",
+          "Please refer to .*surefire-reports"
+        ]
+      },
+      "reason": "Maven Surefire 在测试阶段检测到失败用例，构建被中止。",
+      "details": [
+        "真正的断言失败或异常通常在 surefire-reports 目录中。",
+        "日志末尾的 Maven 错误只是汇总信息，不是根因。"
+      ],
+      "solutions": [
+        "打开 `target/surefire-reports` 查看具体失败测试和堆栈。",
+        "本地单独运行失败测试类复现问题。",
+        "区分代码缺陷、环境依赖缺失和测试数据不稳定。"
+      ]
+    },
+    {
+      "id": "gradle-plugin-not-found",
+      "title": "Gradle 插件解析失败",
+      "tags": [
+        "java",
+        "gradle",
+        "build"
+      ],
+      "match": {
+        "any": [
+          "Plugin \\[id: '.*'.*\\] was not found",
+          "UnknownPluginException",
+          "Could not resolve plugin artifact"
+        ]
+      },
+      "variables": {
+        "plugin": "Plugin \\[id: '([^']+)'"
+      },
+      "reason": "Gradle 找不到插件 {{plugin}}，通常是插件仓库、版本或网络配置问题。",
+      "details": [
+        "plugins DSL 默认从 Gradle Plugin Portal 查找，企业网络可能需要代理或镜像。",
+        "多模块项目也可能因 settings.gradle 中 pluginManagement 配置缺失而失败。"
+      ],
+      "solutions": [
+        "确认插件 id 和 version 正确存在。",
+        "检查 `settings.gradle` 的 `pluginManagement.repositories`。",
+        "确认 CI 或本地代理能访问插件仓库。"
+      ]
+    },
+    {
+      "id": "python-import-circular",
+      "title": "Python 循环导入",
+      "tags": [
+        "python",
+        "import"
+      ],
+      "match": {
+        "any": [
+          "ImportError: cannot import name .* from partially initialized module",
+          "most likely due to a circular import"
+        ]
+      },
+      "variables": {
+        "symbol": "cannot import name '([^']+)'"
+      },
+      "reason": "Python 导入 {{symbol}} 时遇到循环导入，模块尚未完成初始化就被另一个模块引用。",
+      "details": [
+        "常见于两个模块在顶层互相 import，或在包的 __init__.py 中提前导入业务对象。",
+        "错误里的 partially initialized module 通常说明问题不是包不存在，而是导入顺序形成了环。"
+      ],
+      "solutions": [
+        "把其中一个 import 移到函数内部或延迟到真正使用时。",
+        "抽出公共类型、常量或工具函数到第三个模块，避免两个业务模块互相依赖。",
+        "减少 __init__.py 中的聚合导入，只暴露稳定且无副作用的对象。"
+      ]
+    },
+    {
+      "id": "python-relative-import-no-parent",
+      "title": "Python 相对导入上下文缺失",
+      "tags": [
+        "python",
+        "import",
+        "packaging"
+      ],
+      "match": {
+        "any": [
+          "ImportError: attempted relative import with no known parent package"
+        ]
+      },
+      "reason": "脚本被直接运行，Python 不知道它属于哪个包，因此无法解析相对导入。",
+      "details": [
+        "常见于在包目录内直接执行 python file.py，但代码里使用了 from .xxx import yyy。",
+        "测试、CLI、定时任务和容器启动命令的工作目录不一致时也容易触发。"
+      ],
+      "solutions": [
+        "从项目根目录使用模块方式启动：`python -m package.module`。",
+        "把入口脚本放到包外，或改用明确的绝对导入路径。",
+        "检查 pytest、Dockerfile、systemd、Celery 启动命令的工作目录和 PYTHONPATH。"
+      ]
+    },
+    {
+      "id": "python-syntax-invalid",
+      "title": "Python 语法错误",
+      "tags": [
+        "python",
+        "syntax"
+      ],
+      "match": {
+        "any": [
+          "SyntaxError: invalid syntax",
+          "SyntaxError: expected ':'",
+          "SyntaxError: unterminated string literal"
+        ]
+      },
+      "reason": "Python 解释器无法解析当前源码，通常是缺少冒号、括号、引号或使用了当前版本不支持的语法。",
+      "details": [
+        "错误位置附近不一定是真正根因，上一行缺少括号或引号也会让下一行报错。",
+        "在旧 Python 版本运行使用新语法的代码，也会表现为 SyntaxError。"
+      ],
+      "solutions": [
+        "打开报错文件和行号，重点检查该行及上一行的括号、冒号、引号和逗号。",
+        "运行 `python -m py_compile <file>` 快速确认语法。",
+        "确认运行环境的 Python 版本满足项目要求。"
+      ]
+    },
+    {
+      "id": "python-attribute-none",
+      "title": "Python 空对象属性访问",
+      "tags": [
+        "python",
+        "runtime"
+      ],
+      "match": {
+        "any": [
+          "AttributeError: 'NoneType' object has no attribute"
+        ]
+      },
+      "variables": {
+        "attr": "has no attribute '([^']+)'"
+      },
+      "reason": "代码正在访问 None 的属性 {{attr}}，说明上游对象没有按预期创建或查询结果为空。",
+      "details": [
+        "常见于数据库查询未命中、配置读取为空、函数异常分支返回 None 后继续使用。",
+        "真正需要定位的是 None 从哪里来，而不是只看 AttributeError 本身。"
+      ],
+      "solutions": [
+        "定位堆栈中第一行项目代码，检查该变量的赋值来源。",
+        "对可能为空的查询、缓存、外部 API 返回值增加显式判断。",
+        "让函数在失败时抛出更明确的异常，或返回可区分的错误结果。"
+      ]
+    },
+    {
+      "id": "python-version-incompatible",
+      "title": "Python 版本不兼容",
+      "tags": [
+        "python",
+        "packaging"
+      ],
+      "match": {
+        "any": [
+          "Package .* requires a different Python",
+          "Requires-Python",
+          "SyntaxError: invalid syntax.*match ",
+          "No matching distribution found for .*; python_version"
+        ]
+      },
+      "reason": "当前 Python 版本与代码或依赖包要求不一致，导致安装失败或运行时报语法错误。",
+      "details": [
+        "新版本依赖可能要求 Python 3.10/3.11+，旧运行环境无法安装。",
+        "代码使用 match/case、| 类型联合等新语法时，在旧解释器下会报语法错误。"
+      ],
+      "solutions": [
+        "检查 `python --version` 与项目 README、pyproject.toml、Dockerfile 中的版本要求。",
+        "升级运行环境 Python，或锁定兼容当前版本的依赖包版本。",
+        "在 CI 和部署环境中统一 Python 版本，避免本地能跑、线上失败。"
+      ]
+    },
+    {
+      "id": "pip-build-wheel-failed",
+      "title": "Python 依赖编译失败",
+      "tags": [
+        "python",
+        "pip",
+        "packaging"
+      ],
+      "match": {
+        "any": [
+          "Failed building wheel for",
+          "Could not build wheels for",
+          "error: Microsoft Visual C\\+\\+ .* is required",
+          "subprocess-exited-with-error"
+        ]
+      },
+      "variables": {
+        "package": "Failed building wheel for ([\\w.-]+)|Could not build wheels for ([\\w.-]+)"
+      },
+      "reason": "依赖 {{package}} 需要本地编译扩展，但当前环境缺少编译工具、系统库或兼容的 wheel。",
+      "details": [
+        "常见于 psycopg2、mysqlclient、cryptography、lxml、Pillow 等含 C 扩展的包。",
+        "Windows、Alpine Linux、较新的 Python 版本更容易遇到预编译 wheel 不可用。"
+      ],
+      "solutions": [
+        "优先升级 pip/setuptools/wheel：`python -m pip install -U pip setuptools wheel`。",
+        "安装对应系统编译工具和头文件，或改用官方提供 wheel 的包版本。",
+        "数据库驱动可按项目要求选择 binary 包，但生产环境要评估兼容性和安全更新。"
+      ]
+    },
+    {
+      "id": "django-improperly-configured-settings",
+      "title": "Django 配置未初始化",
+      "tags": [
+        "python",
+        "django",
+        "settings"
+      ],
+      "match": {
+        "any": [
+          "django.core.exceptions.ImproperlyConfigured",
+          "Requested setting .* but settings are not configured",
+          "DJANGO_SETTINGS_MODULE"
+        ]
+      },
+      "variables": {
+        "setting": "Requested setting ([A-Z0-9_]+)"
+      },
+      "reason": "Django 访问配置 {{setting}} 时 settings 尚未初始化，通常是启动入口或环境变量配置错误。",
+      "details": [
+        "独立脚本、Celery worker、pytest、manage.py 外部调用 Django ORM 时常见。",
+        "如果没有设置 DJANGO_SETTINGS_MODULE，Django 不知道应加载哪套 settings。"
+      ],
+      "solutions": [
+        "确认启动前设置了 `DJANGO_SETTINGS_MODULE=project.settings`。",
+        "独立脚本中先设置环境变量并调用 `django.setup()`。",
+        "检查 Celery、pytest.ini、ASGI/WSGI 入口是否指向正确的 settings 模块。"
+      ]
+    },
+    {
+      "id": "django-app-registry-not-ready",
+      "title": "Django 应用注册表未就绪",
+      "tags": [
+        "python",
+        "django"
+      ],
+      "match": {
+        "any": [
+          "django.core.exceptions.AppRegistryNotReady",
+          "Apps aren't loaded yet"
+        ]
+      },
+      "reason": "Django 应用注册表尚未加载完成时，代码就访问了模型、翻译或应用配置。",
+      "details": [
+        "常见于 settings 导入业务模型、模块顶层执行 ORM 查询，或独立脚本缺少 django.setup()。",
+        "在 AppConfig.ready() 之前访问 app registry 相关对象也可能触发。"
+      ],
+      "solutions": [
+        "避免在模块顶层执行 ORM 查询或导入会触发查询的业务代码。",
+        "独立脚本和 worker 入口先调用 `django.setup()`。",
+        "检查 settings、urls、celery.py 中是否有过早导入模型的代码。"
+      ]
+    },
+    {
+      "id": "django-disallowed-host",
+      "title": "Django Host 不在允许列表",
+      "tags": [
+        "python",
+        "django",
+        "security"
+      ],
+      "match": {
+        "any": [
+          "django.core.exceptions.DisallowedHost",
+          "Invalid HTTP_HOST header"
+        ]
+      },
+      "variables": {
+        "host": "Invalid HTTP_HOST header: '([^']+)'"
+      },
+      "reason": "请求 Host {{host}} 不在 Django 的 ALLOWED_HOSTS 中，被安全校验拒绝。",
+      "details": [
+        "部署到新域名、负载均衡、内网 IP、容器服务名变化时常见。",
+        "DEBUG=False 时 ALLOWED_HOSTS 必须显式包含允许访问的主机名。"
+      ],
+      "solutions": [
+        "把实际访问域名、内网域名或服务名加入 `ALLOWED_HOSTS`。",
+        "检查反向代理是否正确传递 Host 头。",
+        "不要在生产环境使用 `ALLOWED_HOSTS=['*']` 作为长期方案。"
+      ]
+    },
+    {
+      "id": "django-csrf-failed",
+      "title": "Django CSRF 校验失败",
+      "tags": [
+        "python",
+        "django",
+        "security"
+      ],
+      "match": {
+        "any": [
+          "CSRF verification failed",
+          "Forbidden \\(CSRF cookie not set\\.\\)",
+          "CSRF Failed:"
+        ]
+      },
+      "reason": "Django 拒绝了缺少或不匹配 CSRF token 的请求。",
+      "details": [
+        "常见于前后端分离、跨域请求、HTTPS 代理、Cookie SameSite/Secure 配置不匹配。",
+        "DRF SessionAuthentication 也会对不安全方法执行 CSRF 校验。"
+      ],
+      "solutions": [
+        "确认前端请求携带 CSRF cookie 和 `X-CSRFToken` 头。",
+        "检查 `CSRF_TRUSTED_ORIGINS`、CORS、Cookie 域名、SameSite、Secure 配置。",
+        "API 若使用 token/JWT 鉴权，确认是否仍误用了 SessionAuthentication。"
+      ]
+    },
+    {
+      "id": "drf-authentication-failed",
+      "title": "DRF 认证失败",
+      "tags": [
+        "python",
+        "django",
+        "drf",
+        "auth"
+      ],
+      "match": {
+        "any": [
+          "Authentication credentials were not provided",
+          "Invalid token",
+          "Signature has expired",
+          "Token has expired"
+        ]
+      },
+      "reason": "Django REST Framework 请求缺少认证凭据，或 token/JWT 已失效、格式错误。",
+      "details": [
+        "常见于 Authorization 头未发送、Bearer/Token 前缀错误、JWT 过期或服务端密钥变更。",
+        "代理或网关也可能剥离 Authorization 头。"
+      ],
+      "solutions": [
+        "检查请求是否包含正确的 `Authorization` 头和认证前缀。",
+        "确认前端刷新 token 的流程和服务端时钟同步。",
+        "检查 Nginx/API 网关是否转发 Authorization 头。"
+      ]
+    },
+    {
+      "id": "fastapi-response-validation",
+      "title": "FastAPI 响应模型校验失败",
+      "tags": [
+        "python",
+        "fastapi",
+        "pydantic"
+      ],
+      "match": {
+        "any": [
+          "fastapi.exceptions.ResponseValidationError",
+          "ResponseValidationError",
+          "value is not a valid .*\\(type=",
+          "Field required"
+        ]
+      },
+      "reason": "FastAPI 返回的数据不符合 response_model 或 Pydantic 模型定义。",
+      "details": [
+        "接口逻辑执行成功但返回字段缺失、类型不匹配、None 不允许时会触发。",
+        "Pydantic v1/v2 的错误格式不同，但本质都是模型校验失败。"
+      ],
+      "solutions": [
+        "对照 response_model 检查返回对象字段名、类型和可空设置。",
+        "为可能为空的字段声明 `Optional` 或提供默认值。",
+        "不要直接返回 ORM 内部对象，必要时转换为明确的 schema。"
+      ]
+    },
+    {
+      "id": "fastapi-request-validation",
+      "title": "FastAPI 请求参数校验失败",
+      "tags": [
+        "python",
+        "fastapi",
+        "pydantic"
+      ],
+      "match": {
+        "any": [
+          "RequestValidationError",
+          "422 Unprocessable Entity",
+          "Input should be a valid",
+          "value_error.missing"
+        ]
+      },
+      "reason": "FastAPI 收到的请求参数或请求体不符合接口声明的类型和必填要求。",
+      "details": [
+        "常见于 JSON 字段名不一致、Content-Type 错误、路径/查询参数类型无法转换。",
+        "这类错误通常是客户端请求格式问题，也可能是服务端 schema 变更未同步。"
+      ],
+      "solutions": [
+        "检查请求体 JSON、查询参数和路径参数是否与接口声明一致。",
+        "确认客户端发送 `Content-Type: application/json`。",
+        "为兼容旧客户端，考虑给新增字段设置默认值或允许为空。"
+      ]
+    },
+    {
+      "id": "pydantic-settings-validation",
+      "title": "Pydantic 配置校验失败",
+      "tags": [
+        "python",
+        "pydantic",
+        "settings"
+      ],
+      "match": {
+        "any": [
+          "pydantic.*ValidationError",
+          "validation error for .*Settings",
+          "Field required",
+          "extra inputs are not permitted"
+        ]
+      },
+      "reason": "Pydantic 读取配置或环境变量时校验失败，配置项缺失、类型错误或出现未允许的额外字段。",
+      "details": [
+        "Pydantic Settings 常用于 FastAPI 配置加载，环境变量名、前缀和 .env 路径不一致会导致缺失。",
+        "Pydantic v2 对配置项和额外字段的默认行为可能与 v1 不同。"
+      ],
+      "solutions": [
+        "检查 .env、环境变量名、大小写、前缀和部署平台注入的变量。",
+        "对数字、布尔、列表等配置确认格式能被 Pydantic 正确解析。",
+        "升级到 Pydantic v2 时检查 BaseSettings、model_config 和字段别名配置。"
+      ]
+    },
+    {
+      "id": "uvicorn-import-app-failed",
+      "title": "Uvicorn 应用导入失败",
+      "tags": [
+        "python",
+        "fastapi",
+        "uvicorn"
+      ],
+      "match": {
+        "any": [
+          "ERROR:    Error loading ASGI app",
+          "Could not import module",
+          "Attribute .* not found in module"
+        ]
+      },
+      "variables": {
+        "module": "Could not import module \"([^\"]+)\""
+      },
+      "reason": "Uvicorn 无法导入 ASGI 应用模块 {{module}}，通常是启动路径、模块名或 app 变量名不正确。",
+      "details": [
+        "常见启动格式是 `uvicorn package.module:app`，冒号前是模块路径，冒号后是 ASGI 对象名。",
+        "在错误工作目录启动时，即使代码存在也可能无法导入。"
+      ],
+      "solutions": [
+        "从项目根目录启动，并确认模块路径和 app 变量名正确。",
+        "尝试 `python -c \"import package.module\"` 验证导入路径。",
+        "检查 Dockerfile、systemd、Procfile 中的工作目录和启动命令。"
+      ]
+    },
+    {
+      "id": "asgi-missing-callable",
+      "title": "ASGI 应用对象无效",
+      "tags": [
+        "python",
+        "fastapi",
+        "asgi"
+      ],
+      "match": {
+        "any": [
+          "ASGI app .* must be callable",
+          "TypeError: 'NoneType' object is not callable",
+          "Attribute \"app\" not found"
+        ]
+      },
+      "reason": "ASGI 服务器找到的 app 对象不是可调用应用，或目标属性不存在。",
+      "details": [
+        "常见于写成 `uvicorn main:create_app` 但 create_app 是工厂函数，未加 --factory。",
+        "也可能是 app 变量被条件分支覆盖为 None，或模块里根本没有 app。"
+      ],
+      "solutions": [
+        "如果使用工厂函数，启动时加 `--factory`，或导出实际的 FastAPI 实例。",
+        "确认模块中存在 `app = FastAPI()` 或等价 ASGI 应用对象。",
+        "避免在导入阶段根据环境条件返回 None。"
+      ]
+    },
+    {
+      "id": "gunicorn-worker-boot-failed",
+      "title": "Gunicorn Worker 启动失败",
+      "tags": [
+        "python",
+        "gunicorn",
+        "deployment"
+      ],
+      "match": {
+        "any": [
+          "Worker failed to boot",
+          "HaltServer 'Worker failed to boot\\.'",
+          "Booting worker with pid .* failed"
+        ]
+      },
+      "reason": "Gunicorn worker 在导入应用或初始化依赖时失败，主进程因此停止服务。",
+      "details": [
+        "根因通常在 Worker failed to boot 之前的 Python 堆栈里。",
+        "Django/FastAPI 配置错误、依赖缺失、数据库初始化副作用都可能让 worker 启动失败。"
+      ],
+      "solutions": [
+        "向上查找同一 worker 的完整 Traceback，优先修复最底层异常。",
+        "本地用同样命令启动 Gunicorn 复现，例如 `gunicorn module:app`。",
+        "避免在应用导入阶段执行必须依赖外部服务的重操作。"
+      ]
+    },
+    {
+      "id": "celery-broker-connection-failed",
+      "title": "Celery Broker 连接失败",
+      "tags": [
+        "python",
+        "celery",
+        "redis",
+        "rabbitmq"
+      ],
+      "match": {
+        "any": [
+          "consumer: Cannot connect to",
+          "kombu.exceptions.OperationalError",
+          "ConnectionError: Error .* connecting to",
+          "Connection refused.*(?:amqp|redis)"
+        ]
+      },
+      "reason": "Celery worker 无法连接消息队列 Broker，任务无法被消费。",
+      "details": [
+        "常见 Broker 是 Redis 或 RabbitMQ，地址、端口、密码、vhost、网络策略都可能导致连接失败。",
+        "容器环境中 localhost 通常指向当前容器，而不是 Redis/RabbitMQ 容器。"
+      ],
+      "solutions": [
+        "检查 `CELERY_BROKER_URL` 或 broker_url 的协议、主机、端口、账号和 vhost。",
+        "在 worker 所在环境中直接用 redis-cli、rabbitmq-diagnostics 或 nc 测试连通性。",
+        "检查 Docker Compose 服务名、Kubernetes Service、云安全组和网络策略。"
+      ]
+    },
+    {
+      "id": "celery-unregistered-task",
+      "title": "Celery 任务未注册",
+      "tags": [
+        "python",
+        "celery"
+      ],
+      "match": {
+        "any": [
+          "Received unregistered task of type",
+          "KeyError: '.*'",
+          "The message has been ignored and discarded"
+        ]
+      },
+      "variables": {
+        "task": "Received unregistered task of type '([^']+)'"
+      },
+      "reason": "Celery worker 收到了任务 {{task}}，但当前 worker 没有注册这个任务名。",
+      "details": [
+        "常见于任务模块未被 autodiscover、worker 启动的 app 不对、任务名变更但队列里仍有旧消息。",
+        "生产环境多版本并存时，新代码投递的任务可能被旧 worker 消费。"
+      ],
+      "solutions": [
+        "确认任务函数使用了 `@shared_task` 或当前 Celery app 的 task 装饰器。",
+        "检查 `app.autodiscover_tasks()`、INSTALLED_APPS 和 worker 启动参数 `-A`。",
+        "部署任务名变更后，清理旧队列消息或保证新旧 worker 兼容。"
+      ]
+    },
+    {
+      "id": "celery-result-backend-failed",
+      "title": "Celery 结果后端不可用",
+      "tags": [
+        "python",
+        "celery"
+      ],
+      "match": {
+        "any": [
+          "BackendUnavailable",
+          "DisabledBackend",
+          "No result backend is configured",
+          "Error .* connecting to result backend"
+        ]
+      },
+      "reason": "Celery 结果后端未配置或连接失败，任务状态和返回值无法保存或查询。",
+      "details": [
+        "如果业务依赖 AsyncResult.get/status，缺少 result_backend 会直接影响调用方。",
+        "Broker 可用不代表 result backend 可用，它们可能是不同的 Redis DB、数据库或服务。"
+      ],
+      "solutions": [
+        "确认 `result_backend` 是否按业务需要配置。",
+        "检查结果后端地址、认证、网络和过期策略。",
+        "如果不需要结果，避免调用 `.get()`，并显式配置忽略结果以减少存储压力。"
+      ]
+    },
+    {
+      "id": "celery-task-time-limit",
+      "title": "Celery 任务超时终止",
+      "tags": [
+        "python",
+        "celery",
+        "timeout"
+      ],
+      "match": {
+        "any": [
+          "SoftTimeLimitExceeded",
+          "TimeLimitExceeded",
+          "Hard time limit .* exceeded"
+        ]
+      },
+      "reason": "Celery 任务执行超过 soft/hard time limit，被 worker 中断或杀死。",
+      "details": [
+        "soft limit 会在任务内抛异常，hard limit 会直接终止执行进程。",
+        "长任务、外部 API 卡住、数据库慢查询、批量处理过大都可能触发。"
+      ],
+      "solutions": [
+        "检查任务耗时分布，把大批量任务拆分为更小的子任务。",
+        "给外部 HTTP、数据库、锁等待设置明确超时。",
+        "按业务需要调整 task_time_limit 和 task_soft_time_limit，并处理 SoftTimeLimitExceeded。"
+      ]
+    },
+    {
+      "id": "celery-worker-lost",
+      "title": "Celery Worker 子进程丢失",
+      "tags": [
+        "python",
+        "celery",
+        "worker"
+      ],
+      "match": {
+        "any": [
+          "WorkerLostError",
+          "Worker exited prematurely",
+          "signal 9 \\(SIGKILL\\)",
+          "signal 11 \\(SIGSEGV\\)"
+        ]
+      },
+      "reason": "Celery 子进程异常退出，可能是 OOM、被系统杀死、原生扩展崩溃或 hard time limit。",
+      "details": [
+        "SIGKILL 常见于内存超限或容器被系统终止，SIGSEGV 常见于 C 扩展或底层库崩溃。",
+        "这类错误通常不会有完整 Python Traceback，需要结合系统和容器事件排查。"
+      ],
+      "solutions": [
+        "查看系统日志、容器事件或 Kubernetes describe，确认是否 OOMKilled。",
+        "降低并发、限制单任务内存占用，或拆分大任务。",
+        "排查最近升级的 numpy、pandas、Pillow、数据库驱动等原生扩展依赖。"
+      ]
+    },
+    {
+      "id": "express-headers-already-sent",
+      "title": "Express 响应头已发送",
+      "tags": [
+        "node",
+        "express",
+        "http"
+      ],
+      "match": {
+        "any": [
+          "Cannot set headers after they are sent to the client",
+          "ERR_HTTP_HEADERS_SENT"
+        ]
+      },
+      "reason": "同一个请求已经发送过响应，后续代码又尝试设置响应头或再次返回结果。",
+      "details": [
+        "常见原因是 `res.send()`/`res.json()` 后没有 `return`，或异步分支重复调用 `next()` 和响应方法。",
+        "该问题经常伴随异常处理中间件和业务分支都尝试返回响应。"
+      ],
+      "solutions": [
+        "检查路由中所有响应出口，确保每个请求只发送一次响应。",
+        "在发送响应后立即 `return`，并避免在 catch 中重复响应。",
+        "把异步错误统一交给错误处理中间件，减少分支重复返回。"
+      ]
+    },
+    {
+      "id": "express-body-too-large",
+      "title": "请求体过大",
+      "tags": [
+        "node",
+        "express",
+        "http"
+      ],
+      "match": {
+        "any": [
+          "PayloadTooLargeError: request entity too large",
+          "\\bentity\\.too\\.large\\b",
+          "request entity too large"
+        ]
+      },
+      "reason": "请求体超过了 Express/body-parser 配置的大小限制。",
+      "details": [
+        "上传文件、JSON 大字段或 base64 内容过大时容易触发。",
+        "如果链路上还有 Nginx/API 网关，也可能先被上游限制拒绝。"
+      ],
+      "solutions": [
+        "按业务需要调整 `express.json({ limit })` 或 `express.urlencoded({ limit })`。",
+        "文件上传建议使用流式上传或专用 multipart 中间件。",
+        "同步检查网关、反向代理和应用层的请求大小限制。"
+      ]
+    },
+    {
+      "id": "nest-dependency-resolution",
+      "title": "NestJS 依赖解析失败",
+      "tags": [
+        "node",
+        "nestjs",
+        "dependency-injection"
+      ],
+      "match": {
+        "any": [
+          "Nest can't resolve dependencies of the",
+          "Please make sure that the argument .* at index \\[\\d+\\] is available"
+        ]
+      },
+      "variables": {
+        "provider": "dependencies of the ([\\w$]+)"
+      },
+      "reason": "NestJS 无法为 {{provider}} 解析构造函数依赖，通常是 Provider 未注册或模块未导入。",
+      "details": [
+        "Nest 的 Provider 只在当前模块及其导入模块导出的范围内可见。",
+        "循环依赖、动态模块 exports 缺失或测试模块未注册 mock 也会触发。"
+      ],
+      "solutions": [
+        "确认依赖 Provider 已在对应 module 的 `providers` 中注册。",
+        "如果来自其他模块，确认该模块已 `exports` Provider，并被当前模块 `imports`。",
+        "测试中为外部依赖提供 mock provider。"
+      ]
+    },
+    {
+      "id": "fastify-plugin-version-mismatch",
+      "title": "Fastify 插件版本不兼容",
+      "tags": [
+        "node",
+        "fastify"
+      ],
+      "match": {
+        "any": [
+          "fastify-plugin: .*expected ['\"]\\d",
+          "expected ['\"].*['\"] fastify version"
+        ]
+      },
+      "reason": "Fastify 插件声明的兼容版本与当前 Fastify 主版本不匹配。",
+      "details": [
+        "Fastify 插件常绑定特定主版本，例如 v4 插件不一定兼容 v5。",
+        "lockfile 中混入多个 Fastify 主版本也可能导致插件检查失败。"
+      ],
+      "solutions": [
+        "升级或降级插件到匹配当前 Fastify 版本的发行版。",
+        "检查 lockfile 中是否混入了多个 Fastify 主版本。",
+        "统一 Fastify 核心包和 @fastify/* 插件主版本。"
+      ]
+    },
+    {
+      "id": "fastify-schema-build-failed",
+      "title": "Fastify Schema 构建失败",
+      "tags": [
+        "node",
+        "fastify",
+        "validation"
+      ],
+      "match": {
+        "any": [
+          "FST_ERR_SCH_VALIDATION_BUILD",
+          "Failed building the validation schema",
+          "schema is invalid:"
+        ]
+      },
+      "reason": "Fastify/Ajv 无法编译路由的 JSON Schema。",
+      "details": [
+        "常见原因是 schema 写法不符合 JSON Schema 规范、`required` 字段错误或自定义 keyword 未注册。",
+        "错误通常会指出失败的路由方法和路径。"
+      ],
+      "solutions": [
+        "检查报错路由的 `schema.body/querystring/params/response`。",
+        "确认 `required` 是字符串数组，类型声明和嵌套对象结构合法。",
+        "如果使用自定义格式或 keyword，确认已在 Ajv 中注册。"
+      ]
+    },
+    {
+      "id": "npm-peer-dependency-conflict",
+      "title": "npm Peer 依赖冲突",
+      "tags": [
+        "node",
+        "npm",
+        "package-manager"
+      ],
+      "match": {
+        "any": [
+          "npm ERR! ERESOLVE unable to resolve dependency tree",
+          "npm ERR! Could not resolve dependency:",
+          "Conflicting peer dependency:"
+        ]
+      },
+      "reason": "npm 无法同时满足项目依赖和 peerDependencies 的版本要求。",
+      "details": [
+        "常见于 React、Vite、ESLint、TypeScript 或框架主版本升级后。",
+        "强行忽略 peer 冲突可能在运行时暴露更难定位的问题。"
+      ],
+      "solutions": [
+        "优先选择彼此兼容的包版本，而不是直接使用 `--legacy-peer-deps`。",
+        "查看冲突包的 peerDependencies，统一升级或降级相关依赖。",
+        "在 monorepo 中确认各 workspace 使用一致的框架主版本。"
+      ]
+    },
+    {
+      "id": "npm-engine-unsupported",
+      "title": "Node 版本不满足依赖要求",
+      "tags": [
+        "node",
+        "npm",
+        "runtime"
+      ],
+      "match": {
+        "any": [
+          "npm ERR! EBADENGINE",
+          "Unsupported engine",
+          "The engine \"node\" is incompatible"
+        ]
+      },
+      "reason": "当前 Node.js 版本不满足 package.json 或依赖声明的 engines 要求。",
+      "details": [
+        "包升级后可能要求更高 Node 版本，CI 和本地版本不一致也会触发。",
+        "有些包只警告，有些 CI 会把 engines 不匹配当成安装失败。"
+      ],
+      "solutions": [
+        "按项目 `.nvmrc`、`.node-version` 或 `engines.node` 切换 Node 版本。",
+        "确认 CI、Dockerfile 和本地开发环境使用同一 Node 主版本。",
+        "如不能升级 Node，则锁定兼容当前版本的依赖。"
+      ]
+    },
+    {
+      "id": "pnpm-peer-dependency-issues",
+      "title": "pnpm Peer 依赖问题",
+      "tags": [
+        "node",
+        "pnpm",
+        "package-manager"
+      ],
+      "match": {
+        "any": [
+          "ERR_PNPM_PEER_DEP_ISSUES",
+          "Issues with peer dependencies found",
+          "unmet peer"
+        ]
+      },
+      "reason": "pnpm 检测到 peerDependencies 未满足或版本不兼容。",
+      "details": [
+        "pnpm 的依赖隔离更严格，npm 下侥幸可用的依赖树在 pnpm 中可能暴露问题。",
+        "未满足 peer 依赖常见于工具链插件和框架主版本组合。"
+      ],
+      "solutions": [
+        "补充缺失的 peer 依赖到项目 package.json。",
+        "统一相关框架、插件和工具链版本，避免跨主版本组合。",
+        "谨慎使用 overrides/packageExtensions，确保团队能理解原因。"
+      ]
+    },
+    {
+      "id": "pnpm-frozen-lockfile-outdated",
+      "title": "pnpm 锁文件过期",
+      "tags": [
+        "node",
+        "pnpm",
+        "ci"
+      ],
+      "match": {
+        "any": [
+          "ERR_PNPM_OUTDATED_LOCKFILE",
+          "Cannot install with \"frozen-lockfile\"",
+          "pnpm-lock.yaml is not up to date"
+        ]
+      },
+      "reason": "`package.json` 与 `pnpm-lock.yaml` 不一致，冻结安装被拒绝。",
+      "details": [
+        "CI 默认常使用 frozen lockfile，依赖变更后未提交 lockfile 会失败。",
+        "这类问题应通过更新锁文件解决，而不是在 CI 中关闭校验。"
+      ],
+      "solutions": [
+        "在本地运行 `pnpm install` 更新 lockfile 并提交。",
+        "确认没有手工编辑 package.json 后遗漏锁文件变更。",
+        "检查 monorepo 中是否改了子包依赖但没有从根目录安装。"
+      ]
+    },
+    {
+      "id": "typescript-cannot-find-name",
+      "title": "TypeScript 名称未定义",
+      "tags": [
+        "typescript",
+        "javascript"
+      ],
+      "match": {
+        "any": [
+          "TS2304: Cannot find name",
+          "error TS2304: Cannot find name"
+        ]
+      },
+      "variables": {
+        "name": "Cannot find name ['\"]?([^'\".]+)['\"]?"
+      },
+      "reason": "TypeScript 找不到名称 {{name}} 的类型、变量或全局声明。",
+      "details": [
+        "可能是缺少 import、类型包未安装，或 tsconfig 没有包含对应声明文件。",
+        "Node、DOM、测试框架等全局类型需要通过 lib/types 显式纳入。"
+      ],
+      "solutions": [
+        "补充正确的 `import` 或声明文件。",
+        "浏览器/Node 全局类型缺失时，检查 `types`、`lib` 和 `@types/*` 依赖。",
+        "确认 tsconfig include 没有漏掉自定义 .d.ts。"
+      ]
+    },
+    {
+      "id": "typescript-type-not-assignable",
+      "title": "TypeScript 类型不兼容",
+      "tags": [
+        "typescript"
+      ],
+      "match": {
+        "any": [
+          "TS2322: Type .* is not assignable to type",
+          "error TS2322: Type .* is not assignable to type"
+        ]
+      },
+      "reason": "赋值或返回值类型与目标类型声明不一致。",
+      "details": [
+        "常见于接口字段变更、可空值处理不足、泛型推断不符合预期。",
+        "这通常是类型系统提前发现了真实数据契约不一致。"
+      ],
+      "solutions": [
+        "对照报错两端的类型，确认字段名、可选性和 null/undefined 是否一致。",
+        "优先修正数据结构或类型声明，避免无依据的 `as any`。",
+        "为外部数据增加解析和校验边界。"
+      ]
+    },
+    {
+      "id": "prisma-client-not-generated",
+      "title": "Prisma Client 未生成",
+      "tags": [
+        "node",
+        "prisma",
+        "database"
+      ],
+      "match": {
+        "any": [
+          "@prisma/client did not initialize yet",
+          "Please run \"prisma generate\"",
+          "Prisma Client is unable to be run before being generated"
+        ]
+      },
+      "reason": "Prisma Client 尚未根据 schema 生成，运行时代码无法加载客户端。",
+      "details": [
+        "依赖安装后、schema 修改后或 CI 构建阶段遗漏 generate 时常见。",
+        "Docker 多阶段构建中只复制 node_modules 而漏掉 schema 也会触发。"
+      ],
+      "solutions": [
+        "运行 `npx prisma generate` 或在构建流程中加入生成步骤。",
+        "确认 `schema.prisma` 路径和 Docker/CI 构建阶段包含 Prisma schema。",
+        "如果使用 monorepo，确认 generate 在正确 package 中执行。"
+      ]
+    },
+    {
+      "id": "prisma-migration-drift",
+      "title": "Prisma 迁移漂移",
+      "tags": [
+        "node",
+        "prisma",
+        "database",
+        "migration"
+      ],
+      "match": {
+        "any": [
+          "Drift detected: Your database schema is not in sync",
+          "P3006",
+          "The migration .* failed to apply cleanly to the shadow database"
+        ]
+      },
+      "reason": "Prisma 检测到数据库结构与迁移历史不一致。",
+      "details": [
+        "常见原因是手工改库、不同分支迁移冲突，或 shadow database 权限/状态异常。",
+        "直接 reset 可能删除数据，生产环境需要特别谨慎。"
+      ],
+      "solutions": [
+        "先备份数据，再用 `prisma migrate status` 查看迁移状态。",
+        "团队协作中合并迁移文件后，重新生成并验证迁移顺序。",
+        "生产库漂移应通过补充迁移脚本修正，不要直接 reset。"
+      ]
+    },
+    {
+      "id": "sequelize-association-alias",
+      "title": "Sequelize 关联别名错误",
+      "tags": [
+        "node",
+        "sequelize",
+        "database"
+      ],
+      "match": {
+        "any": [
+          "SequelizeEagerLoadingError",
+          "is associated to .* using an alias",
+          "You've included an alias .* but it does not match"
+        ]
+      },
+      "reason": "Sequelize 查询 include 使用的关联别名与模型定义不一致。",
+      "details": [
+        "`as` 必须与 `belongsTo/hasMany/hasOne/belongsToMany` 中定义的别名完全一致。",
+        "同一模型存在多条关联时，别名错误更容易发生。"
+      ],
+      "solutions": [
+        "检查模型 association 定义中的 `as`，并同步修改 include。",
+        "避免同一模型多条关联使用相同或含糊的别名。",
+        "为复杂 include 查询补充集成测试。"
+      ]
+    },
+    {
+      "id": "sequelize-connection-acquire-timeout",
+      "title": "Sequelize 连接池获取超时",
+      "tags": [
+        "node",
+        "sequelize",
+        "database"
+      ],
+      "match": {
+        "any": [
+          "SequelizeConnectionAcquireTimeoutError",
+          "Operation timeout",
+          "ResourceRequest timed out"
+        ]
+      },
+      "reason": "Sequelize 在连接池中等待可用数据库连接超时。",
+      "details": [
+        "可能是连接泄漏、慢查询过多、池大小过小或数据库达到连接上限。",
+        "未正确结束事务会长期占用连接池连接。"
+      ],
+      "solutions": [
+        "检查是否所有事务都正确 commit/rollback。",
+        "排查慢查询和并发峰值，按容量调整 pool.max/acquire。",
+        "监控数据库连接数，避免应用实例数乘以 pool.max 超过数据库上限。"
+      ]
+    },
+    {
+      "id": "next-hydration-mismatch",
+      "title": "Next.js 水合内容不一致",
+      "tags": [
+        "node",
+        "nextjs",
+        "react",
+        "ssr"
+      ],
+      "match": {
+        "any": [
+          "Hydration failed because the initial UI does not match",
+          "Text content does not match server-rendered HTML",
+          "There was an error while hydrating"
+        ]
+      },
+      "reason": "服务端渲染的 HTML 与浏览器首次渲染结果不一致。",
+      "details": [
+        "常见原因是渲染阶段读取时间、随机数、localStorage、窗口尺寸或用户态数据。",
+        "第三方组件如果在 SSR 阶段产生不同输出，也会触发。"
+      ],
+      "solutions": [
+        "把只依赖浏览器环境的逻辑移到 `useEffect`。",
+        "确保 SSR 首屏数据稳定，避免在 render 中直接使用随机值和当前时间。",
+        "对不支持 SSR 的组件使用动态导入并关闭 SSR。"
+      ]
+    },
+    {
+      "id": "next-dynamic-server-component-error",
+      "title": "Next.js 服务端组件使用了客户端能力",
+      "tags": [
+        "node",
+        "nextjs",
+        "react",
+        "ssr"
+      ],
+      "match": {
+        "any": [
+          "You're importing a component that needs useState",
+          "needs useEffect",
+          "only works in a Client Component",
+          "add the \"use client\" directive"
+        ]
+      },
+      "reason": "Next.js Server Component 引入了需要浏览器或 React 客户端 Hook 的代码。",
+      "details": [
+        "App Router 默认是 Server Component，使用 `useState`、`useEffect`、事件处理器等需要客户端边界。",
+        "客户端组件的父子边界会影响可导入的模块类型。"
+      ],
+      "solutions": [
+        "在需要交互的组件文件顶部添加 `'use client'`。",
+        "把纯数据读取留在 Server Component，将交互 UI 拆到 Client Component。",
+        "避免在 Server Component 中直接导入依赖 window/document 的库。"
+      ]
+    },
+    {
+      "id": "vite-import-analysis-failed",
+      "title": "Vite 导入分析失败",
+      "tags": [
+        "node",
+        "vite",
+        "frontend"
+      ],
+      "match": {
+        "any": [
+          "\\[vite\\] Internal server error: Failed to resolve import",
+          "Rollup failed to resolve import",
+          "Does the file exist\\?"
+        ]
+      },
+      "variables": {
+        "importPath": "resolve import ['\"]([^'\"]+)['\"]"
+      },
+      "reason": "Vite 无法解析导入路径 {{importPath}}。",
+      "details": [
+        "可能是文件路径大小写不一致、别名未配置、依赖未安装或导入了服务端专用模块。",
+        "Windows 下大小写问题可能不明显，Linux CI/部署会失败。"
+      ],
+      "solutions": [
+        "确认导入路径、文件扩展名和大小写在目标系统上完全匹配。",
+        "检查 `vite.config` alias 与 `tsconfig.paths` 是否一致。",
+        "确认依赖存在于 dependencies，而不是只存在于另一个 workspace。"
+      ]
+    },
+    {
+      "id": "bullmq-missing-lock",
+      "title": "BullMQ 任务锁丢失",
+      "tags": [
+        "node",
+        "queue",
+        "bullmq",
+        "redis"
+      ],
+      "match": {
+        "any": [
+          "Missing lock for job",
+          "job stalled more than allowable limit",
+          "could not renew lock for job"
+        ]
+      },
+      "reason": "BullMQ Worker 未能及时续约任务锁，任务可能被判定为 stalled 或重复执行。",
+      "details": [
+        "常见原因是任务同步阻塞太久、Worker 崩溃、Redis 延迟高或 lockDuration 太短。",
+        "锁丢失后任务可能被重新投递，业务必须考虑幂等。"
+      ],
+      "solutions": [
+        "避免在任务中长时间阻塞事件循环，CPU 密集任务拆到独立进程。",
+        "根据任务耗时调整 `lockDuration`，并监控 Redis 延迟和 Worker 重启。",
+        "为任务处理逻辑增加幂等键或去重保护。"
+      ]
+    },
+    {
+      "id": "browser-cors-blocked",
+      "title": "浏览器 CORS 拦截",
+      "tags": [
+        "frontend",
+        "browser",
+        "http",
+        "cors"
+      ],
+      "match": {
+        "any": [
+          "blocked by CORS policy",
+          "No 'Access-Control-Allow-Origin' header",
+          "Response to preflight request doesn't pass access control check"
+        ]
+      },
+      "reason": "浏览器跨域请求被 CORS 策略拦截，前端无法读取响应。",
+      "details": [
+        "CORS 是浏览器安全策略，服务端必须显式允许来源、方法和请求头。",
+        "带 cookie 的跨域请求还必须正确配置 credentials 和 SameSite/Secure。"
+      ],
+      "solutions": [
+        "在 API 服务端配置允许的 Origin、Methods、Headers 和 Credentials。",
+        "开发环境可通过 Vite/Next dev proxy 转发到同源地址。",
+        "避免在生产中使用过宽的 `*` 配置处理带凭据请求。"
+      ]
+    },
+    {
+      "id": "go-module-missing",
+      "title": "Go 模块或包缺失",
+      "tags": [
+        "go",
+        "dependency"
+      ],
+      "match": {
+        "any": [
+          "no required module provides package\\s+[^\\s]+",
+          "cannot find module providing package\\s+[^\\s]+",
+          "package\\s+[^\\s]+\\s+is not in std"
+        ]
+      },
+      "variables": {
+        "package": "package\\s+([^\\s]+)|provides package\\s+([^\\s]+)|providing package\\s+([^\\s]+)"
+      },
+      "reason": "Go 构建时找不到包 {{package}}，通常是依赖未加入 go.mod、模块路径写错或工作区配置不完整。",
+      "details": [
+        "Go modules 会根据当前目录、go.mod 和 go.work 解析依赖，目录位置不对也会导致同一包无法解析。",
+        "私有仓库还可能受 GOPRIVATE、代理、凭据或网络访问限制影响。"
+      ],
+      "solutions": [
+        "在项目根目录执行 `go mod tidy`，确认 go.mod 中出现目标依赖。",
+        "检查 import 路径、模块名和仓库大小写是否一致。",
+        "私有模块需配置 `GOPRIVATE`，并确认 git 凭据或代理可访问。"
+      ]
+    },
+    {
+      "id": "go-version-too-old",
+      "title": "Go 版本过低",
+      "tags": [
+        "go",
+        "toolchain"
+      ],
+      "match": {
+        "any": [
+          "module requires Go\\s+\\d+\\.\\d+",
+          "go: go\\.mod requires go >=\\s*\\d+\\.\\d+",
+          "cannot compile Go\\s+\\d+\\.\\d+\\s+code"
+        ]
+      },
+      "variables": {
+        "version": "requires Go\\s+(\\d+\\.\\d+)|requires go >=\\s*(\\d+\\.\\d+)"
+      },
+      "reason": "当前 Go 工具链低于项目要求的 {{version}}，无法正确构建或解析依赖。",
+      "details": [
+        "go.mod 中的 go/toolchain 指令会限制最低可用版本。",
+        "CI、Docker 镜像和本地开发机使用不同 Go 版本时很容易只在某个环境失败。"
+      ],
+      "solutions": [
+        "升级本地或构建镜像中的 Go 版本，使其满足 go.mod 要求。",
+        "检查 CI 配置、Dockerfile 和版本管理工具中的 Go 版本。",
+        "如必须降级项目版本，需确认代码没有使用新版本语言特性或标准库 API。"
+      ]
+    },
+    {
+      "id": "go-all-goroutines-deadlock",
+      "title": "Go goroutine 死锁",
+      "tags": [
+        "go",
+        "concurrency"
+      ],
+      "match": {
+        "any": [
+          "fatal error: all goroutines are asleep - deadlock!",
+          "all goroutines are asleep - deadlock"
+        ]
+      },
+      "reason": "所有 goroutine 都在等待 channel、锁或同步条件，程序没有可继续执行的任务。",
+      "details": [
+        "常见原因是无缓冲 channel 没有对应收发方、WaitGroup 计数未归零，或锁顺序造成互相等待。",
+        "死锁通常发生在测试、小工具或主 goroutine 等待后台任务时。"
+      ],
+      "solutions": [
+        "查看 panic 后每个 goroutine 的堆栈，定位都卡在什么 channel 或锁上。",
+        "确认 channel 的发送和接收路径都能执行，必要时增加关闭 channel 的明确时机。",
+        "检查 WaitGroup 的 Add/Done 是否成对，避免错误分支漏掉 Done。"
+      ]
+    },
+    {
+      "id": "go-context-deadline",
+      "title": "Go 上下文超时",
+      "tags": [
+        "go",
+        "timeout",
+        "request"
+      ],
+      "match": {
+        "any": [
+          "context deadline exceeded",
+          "Client\\.Timeout exceeded while awaiting headers",
+          "net/http: timeout awaiting response headers"
+        ]
+      },
+      "reason": "请求或后台任务超过 context/HTTP 客户端设置的超时时间，调用被主动取消。",
+      "details": [
+        "这可能来自下游服务慢、网络不稳定、连接池耗尽，或超时时间设置过短。",
+        "如果日志中只有超时结果，需要结合 traceId 或下游访问日志确认卡在哪一段。"
+      ],
+      "solutions": [
+        "检查下游服务延迟、错误率和连接池使用情况。",
+        "为关键调用记录目标地址、超时时间、重试次数和耗时分段。",
+        "按业务 SLA 调整 timeout/retry，并避免无上限重试放大故障。"
+      ]
+    },
+    {
+      "id": "go-too-many-open-files",
+      "title": "Go 文件描述符耗尽",
+      "tags": [
+        "go",
+        "runtime",
+        "resource"
+      ],
+      "match": {
+        "any": [
+          "too many open files",
+          "socket: too many open files",
+          "accept4?: too many open files"
+        ]
+      },
+      "reason": "进程打开的文件、socket 或连接数量达到系统限制，新的请求或文件操作无法继续。",
+      "details": [
+        "常见原因是响应体、文件句柄或数据库连接没有及时关闭。",
+        "高并发场景下，即使没有泄漏，系统 ulimit 或容器限制也可能过低。"
+      ],
+      "solutions": [
+        "检查代码中 `defer resp.Body.Close()`、文件 Close 和连接释放是否完整。",
+        "查看 `ulimit -n`、容器 securityContext 和 systemd LimitNOFILE。",
+        "为 HTTP/DB 客户端设置连接池上限和空闲连接回收策略。"
+      ]
+    },
+    {
+      "id": "dotnet-assembly-load-failure",
+      "title": ".NET 程序集加载失败",
+      "tags": [
+        "dotnet",
+        "dependency"
+      ],
+      "match": {
+        "any": [
+          "Could not load file or assembly",
+          "FileNotFoundException: Could not load file or assembly",
+          "FileLoadException: Could not load file or assembly"
+        ]
+      },
+      "variables": {
+        "assembly": "assembly '([^']+)'|assembly \"([^\"]+)\""
+      },
+      "reason": ".NET 运行时无法加载程序集 {{assembly}}，通常是依赖缺失、版本冲突或发布包不完整。",
+      "details": [
+        "本地能运行但发布后失败，常见于 publish 输出缺文件或运行时版本不同。",
+        "强命名程序集、binding redirect 或 transitive dependency 版本不一致也会触发。"
+      ],
+      "solutions": [
+        "执行 `dotnet restore` 和 `dotnet publish`，确认发布目录包含目标程序集。",
+        "检查 `.csproj` 包版本和依赖树：`dotnet list package --include-transitive`。",
+        "确认部署机器安装了匹配的 .NET Runtime/ASP.NET Core Runtime。"
+      ]
+    },
+    {
+      "id": "dotnet-ef-invalid-object",
+      "title": "EF Core 表或对象不存在",
+      "tags": [
+        "dotnet",
+        "ef-core",
+        "database",
+        "migration"
+      ],
+      "match": {
+        "any": [
+          "Invalid object name '\\w+'",
+          "relation \"[^\"]+\" does not exist",
+          "SqlException.*Invalid object name"
+        ]
+      },
+      "variables": {
+        "object": "Invalid object name '([^']+)'|relation \"([^\"]+)\" does not exist"
+      },
+      "reason": "EF Core 访问的数据库对象 {{object}} 不存在，通常是迁移未应用或连接到了错误数据库。",
+      "details": [
+        "代码中的 DbContext 模型已经变更，但目标环境数据库结构还停留在旧版本。",
+        "多环境配置中，连接字符串缓存或密钥配置错误也会把应用指向空库。"
+      ],
+      "solutions": [
+        "执行 `dotnet ef migrations list` 和 `dotnet ef database update` 检查并应用迁移。",
+        "确认运行环境的连接字符串、数据库名和 schema 与预期一致。",
+        "发布前把迁移执行纳入部署流程，避免应用先于数据库结构上线。"
+      ]
+    },
+    {
+      "id": "dotnet-dbupdate-concurrency",
+      "title": "EF Core 并发更新冲突",
+      "tags": [
+        "dotnet",
+        "ef-core",
+        "concurrency"
+      ],
+      "match": {
+        "any": [
+          "DbUpdateConcurrencyException",
+          "expected to affect 1 row\\(s\\), but actually affected 0 row\\(s\\)",
+          "Database operation expected to affect 1 row"
+        ]
+      },
+      "reason": "EF Core 保存数据时发现目标行已被修改或删除，当前实体版本不再匹配数据库。",
+      "details": [
+        "使用 RowVersion、时间戳或并发 token 时，旧实体再次保存会触发该异常。",
+        "后台任务、重复提交或多个用户同时编辑同一记录都可能造成冲突。"
+      ],
+      "solutions": [
+        "根据业务选择重试、提示用户刷新，或合并数据库当前值与用户修改。",
+        "检查是否误用了过期 DTO 或长时间持有 DbContext。",
+        "为更新接口增加幂等和版本校验，避免静默覆盖他人修改。"
+      ]
+    },
+    {
+      "id": "dotnet-options-validation",
+      "title": ".NET 配置校验失败",
+      "tags": [
+        "dotnet",
+        "configuration"
+      ],
+      "match": {
+        "any": [
+          "OptionsValidationException",
+          "DataAnnotation validation failed for",
+          "Cannot create instance of type .* because it is missing a public parameterless constructor"
+        ]
+      },
+      "variables": {
+        "options": "DataAnnotation validation failed for '([^']+)'|OptionsValidationException: '([^']+)'"
+      },
+      "reason": ".NET 配置对象 {{options}} 绑定或校验失败，应用可能缺少必填配置或配置格式不正确。",
+      "details": [
+        "常见于 appsettings、环境变量、Secret 覆盖不完整，或配置键层级写错。",
+        "启用 ValidateOnStart 后，问题会在应用启动阶段直接暴露。"
+      ],
+      "solutions": [
+        "检查 appsettings、环境变量和部署密钥中的配置键名是否与 Options 类一致。",
+        "确认数字、布尔值、数组等配置格式可被绑定器解析。",
+        "为关键配置保留启动时校验，并在日志中输出配置节名但不要输出敏感值。"
+      ]
+    },
+    {
+      "id": "dotnet-request-aborted",
+      "title": ".NET 请求被客户端取消",
+      "tags": [
+        "dotnet",
+        "aspnetcore",
+        "request"
+      ],
+      "match": {
+        "any": [
+          "ConnectionAbortedException",
+          "The client has disconnected",
+          "The operation was canceled.*RequestAborted"
+        ]
+      },
+      "reason": "ASP.NET Core 处理请求时客户端断开连接，服务端继续写响应或等待操作时收到取消信号。",
+      "details": [
+        "用户关闭页面、网关超时、前端主动取消请求都可能触发。",
+        "如果频繁出现，需要区分正常取消和接口响应过慢导致的取消。"
+      ],
+      "solutions": [
+        "检查接口耗时、网关超时和前端请求超时设置是否匹配。",
+        "在长任务中传递 `HttpContext.RequestAborted`，及时停止无意义工作。",
+        "对该类日志按频率和接口聚合，避免把正常客户端取消误判为服务端故障。"
+      ]
+    },
+    {
+      "id": "laravel-binding-resolution",
+      "title": "Laravel 容器解析失败",
+      "tags": [
+        "php",
+        "laravel",
+        "dependency-injection"
+      ],
+      "match": {
+        "any": [
+          "Target class \\[[^\\]]+\\] does not exist",
+          "BindingResolutionException",
+          "Unresolvable dependency resolving"
+        ]
+      },
+      "variables": {
+        "target": "Target class \\[([^\\]]+)\\]|resolving \\[([^\\]]+)\\]"
+      },
+      "reason": "Laravel 服务容器无法解析 {{target}}，通常是类名、命名空间、绑定或构造函数依赖有问题。",
+      "details": [
+        "控制器、Job、Middleware、Service 被自动解析时，构造函数中的任一依赖都必须可实例化。",
+        "升级 Laravel 或调整命名空间后，旧的路由缓存也可能继续引用不存在的类。"
+      ],
+      "solutions": [
+        "检查类命名空间、文件路径和 Composer autoload 是否一致。",
+        "为接口或抽象类在 ServiceProvider 中补充容器绑定。",
+        "执行 `php artisan route:clear`、`config:clear` 和 `composer dump-autoload`。"
+      ]
+    },
+    {
+      "id": "laravel-app-key-missing",
+      "title": "Laravel APP_KEY 缺失",
+      "tags": [
+        "php",
+        "laravel",
+        "configuration"
+      ],
+      "match": {
+        "any": [
+          "No application encryption key has been specified",
+          "MissingAppKeyException"
+        ]
+      },
+      "reason": "Laravel 没有配置 APP_KEY，无法进行加密、Cookie、Session 等安全相关操作。",
+      "details": [
+        "新环境部署时忘记生成 .env 或配置缓存仍使用旧值，会导致启动或请求失败。",
+        "APP_KEY 不应频繁变更，否则已有加密 Cookie、Session 或密文可能无法解密。"
+      ],
+      "solutions": [
+        "在目标环境设置 `APP_KEY`，本地可执行 `php artisan key:generate`。",
+        "部署后执行 `php artisan config:clear` 或重新生成配置缓存。",
+        "生产环境变更 APP_KEY 前先评估现有加密数据和登录态影响。"
+      ]
+    },
+    {
+      "id": "laravel-method-not-allowed",
+      "title": "Laravel 请求方法不匹配",
+      "tags": [
+        "php",
+        "laravel",
+        "request"
+      ],
+      "match": {
+        "any": [
+          "MethodNotAllowedHttpException",
+          "The (GET|POST|PUT|PATCH|DELETE) method is not supported for this route"
+        ]
+      },
+      "variables": {
+        "method": "The (GET|POST|PUT|PATCH|DELETE) method is not supported"
+      },
+      "reason": "请求使用了 {{method}} 方法，但 Laravel 路由只注册了其他 HTTP 方法。",
+      "details": [
+        "常见于前端接口方法写错、表单缺少 method spoofing，或路由缓存仍是旧版本。",
+        "反向代理也可能把预检、重定向或方法覆盖处理错。"
+      ],
+      "solutions": [
+        "用 `php artisan route:list` 确认目标 URL 支持的 HTTP 方法。",
+        "检查前端请求、HTML 表单 `_method` 和 API 文档是否一致。",
+        "清理路由缓存：`php artisan route:clear`。"
+      ]
+    },
+    {
+      "id": "laravel-csrf-token-mismatch",
+      "title": "Laravel CSRF Token 不匹配",
+      "tags": [
+        "php",
+        "laravel",
+        "request",
+        "security"
+      ],
+      "match": {
+        "any": [
+          "TokenMismatchException",
+          "CSRF token mismatch",
+          "The CSRF token is invalid"
+        ]
+      },
+      "reason": "Laravel 校验 CSRF token 失败，请求的 token、session 或 cookie 状态不一致。",
+      "details": [
+        "常见于表单页面停留太久、Session 过期、跨域 Cookie 未携带，或前端没有发送 X-CSRF-TOKEN。",
+        "负载均衡环境下，如果 Session 存储不共享，也可能随机失败。"
+      ],
+      "solutions": [
+        "确认页面 meta token、请求头 `X-CSRF-TOKEN` 和 Session Cookie 同时存在。",
+        "检查 SameSite、Secure、域名、跨域凭据和 HTTPS 配置。",
+        "多实例部署时使用共享 Session 存储，如 Redis 或数据库。"
+      ]
+    },
+    {
+      "id": "php-memory-exhausted",
+      "title": "PHP 内存限制耗尽",
+      "tags": [
+        "php",
+        "runtime",
+        "resource"
+      ],
+      "match": {
+        "any": [
+          "Allowed memory size of \\d+ bytes exhausted",
+          "PHP Fatal error:.*Allowed memory size"
+        ]
+      },
+      "variables": {
+        "bytes": "Allowed memory size of (\\d+) bytes exhausted"
+      },
+      "reason": "PHP 进程已达到 memory_limit {{bytes}} 字节，当前请求或任务无法继续分配内存。",
+      "details": [
+        "常见于一次性加载大结果集、导出文件、图片处理、递归或队列任务批量过大。",
+        "单纯调高 memory_limit 只能缓解，仍需确认是否存在非预期内存增长。"
+      ],
+      "solutions": [
+        "把大查询改为分页、chunk、cursor 或流式处理。",
+        "检查循环中是否累积数组、日志上下文或模型对象未释放。",
+        "按任务类型合理设置 CLI/FPM 的 memory_limit，并监控峰值内存。"
+      ]
+    },
+    {
+      "id": "composer-platform-requirement",
+      "title": "Composer 平台依赖不满足",
+      "tags": [
+        "php",
+        "composer",
+        "dependency"
+      ],
+      "match": {
+        "any": [
+          "Your requirements could not be resolved to an installable set of packages",
+          "requires php \\^?\\d+\\.\\d+",
+          "requires ext-[a-zA-Z0-9_]+ \\* -> it is missing"
+        ]
+      },
+      "variables": {
+        "extension": "requires (ext-[a-zA-Z0-9_]+)"
+      },
+      "reason": "Composer 依赖解析失败，当前 PHP 版本或扩展 {{extension}} 不满足包要求。",
+      "details": [
+        "本地和部署环境 PHP 版本不同，或容器镜像缺少扩展时很常见。",
+        "忽略 platform requirements 可能安装成功但运行时继续失败。"
+      ],
+      "solutions": [
+        "检查 `php -v`、`php -m` 和 composer.lock 中的包要求。",
+        "安装缺失 PHP 扩展，或换用满足要求的 PHP 镜像。",
+        "避免长期使用 `--ignore-platform-reqs` 掩盖环境问题。"
+      ]
+    },
+    {
+      "id": "rails-pending-migration",
+      "title": "Rails 迁移未执行",
+      "tags": [
+        "ruby",
+        "rails",
+        "migration"
+      ],
+      "match": {
+        "any": [
+          "ActiveRecord::PendingMigrationError",
+          "Migrations are pending",
+          "To resolve this issue, run:.*bin/rails db:migrate"
+        ]
+      },
+      "reason": "Rails 检测到数据库迁移文件尚未应用，当前数据库结构落后于代码。",
+      "details": [
+        "开发、测试或部署环境切换分支后，新的 migration 常常还没有执行。",
+        "如果数据库连接到了错误环境，也会表现为一直提示 pending migration。"
+      ],
+      "solutions": [
+        "执行 `bin/rails db:migrate`，测试环境执行 `RAILS_ENV=test bin/rails db:migrate`。",
+        "确认 `RAILS_ENV`、DATABASE_URL 和 database.yml 指向目标数据库。",
+        "部署流程中加入迁移步骤，并关注迁移失败后的回滚策略。"
+      ]
+    },
+    {
+      "id": "rails-uninitialized-constant",
+      "title": "Rails 常量或类未加载",
+      "tags": [
+        "ruby",
+        "rails",
+        "autoload"
+      ],
+      "match": {
+        "any": [
+          "NameError: uninitialized constant",
+          "Zeitwerk::NameError",
+          "expected file .* to define constant"
+        ]
+      },
+      "variables": {
+        "constant": "uninitialized constant\\s+([A-Za-z0-9_:]+)|define constant\\s+([A-Za-z0-9_:]+)"
+      },
+      "reason": "Rails 自动加载找不到常量 {{constant}}，通常是文件路径、类名、命名空间或大小写不符合约定。",
+      "details": [
+        "Zeitwerk 要求文件路径与常量名严格对应，缩写、嵌套模块和单复数错误都可能失败。",
+        "Linux 部署环境区分大小写，本地 macOS/Windows 可能没有提前暴露。"
+      ],
+      "solutions": [
+        "检查文件路径是否与常量名对应，例如 `app/services/payments/client.rb` 定义 `Payments::Client`。",
+        "执行 `bin/rails zeitwerk:check` 验证自动加载规则。",
+        "修正命名后重启 Spring、Puma 或后台 worker，避免旧进程缓存。"
+      ]
+    },
+    {
+      "id": "rails-routing-error",
+      "title": "Rails 路由不匹配",
+      "tags": [
+        "ruby",
+        "rails",
+        "request"
+      ],
+      "match": {
+        "any": [
+          "ActionController::RoutingError",
+          "No route matches \\[\\w+\\]",
+          "No route matches"
+        ]
+      },
+      "variables": {
+        "method": "No route matches \\[(\\w+)\\]"
+      },
+      "reason": "Rails 没有找到匹配该请求方法 {{method}} 和路径的路由。",
+      "details": [
+        "路由路径、namespace、format、HTTP 方法任一不一致都会触发。",
+        "前端部署在子路径、反向代理 rewrite 或 API 版本前缀错误也常见。"
+      ],
+      "solutions": [
+        "执行 `bin/rails routes`，确认路径、方法和 controller action 是否存在。",
+        "检查前端 base URL、网关 rewrite 和 Rails routes namespace。",
+        "如果是静态资源路径，确认 assets 预编译和 public 文件是否存在。"
+      ]
+    },
+    {
+      "id": "rails-record-not-found",
+      "title": "Rails 记录不存在",
+      "tags": [
+        "ruby",
+        "rails",
+        "database",
+        "request"
+      ],
+      "match": {
+        "any": [
+          "ActiveRecord::RecordNotFound",
+          "Couldn't find [A-Za-z0-9_:]+ with",
+          "Couldn't find [A-Za-z0-9_:]+ without an ID"
+        ]
+      },
+      "variables": {
+        "model": "Couldn't find ([A-Za-z0-9_:]+)"
+      },
+      "reason": "Rails 查询模型 {{model}} 时没有找到对应记录，通常是 URL 参数、权限范围或数据状态不符合预期。",
+      "details": [
+        "在 controller 中使用 `find` 时，缺失或不可访问的记录会直接抛出异常。",
+        "多租户、软删除、默认 scope 或权限过滤会让实际可见数据少于数据库数据。"
+      ],
+      "solutions": [
+        "检查请求参数中的 id、slug 或外键是否正确。",
+        "确认当前用户、租户、默认 scope 和软删除条件是否过滤了记录。",
+        "对可预期的缺失场景返回 404 或业务错误，而不是让异常散落到日志。"
+      ]
+    },
+    {
+      "id": "rails-connection-pool-timeout",
+      "title": "Rails 数据库连接池耗尽",
+      "tags": [
+        "ruby",
+        "rails",
+        "database",
+        "concurrency"
+      ],
+      "match": {
+        "any": [
+          "ActiveRecord::ConnectionTimeoutError",
+          "could not obtain a connection from the pool",
+          "Waited \\d+\\.\\d+ seconds"
+        ]
+      },
+      "reason": "Rails 在连接池等待超时前没有拿到数据库连接，通常是并发数超过 pool 配置或连接被长时间占用。",
+      "details": [
+        "Puma 线程数、Sidekiq 并发数和 database.yml 的 pool 不匹配时很容易触发。",
+        "慢 SQL、事务过长或代码忘记释放连接都会放大连接池压力。"
+      ],
+      "solutions": [
+        "让 database.yml 的 pool 至少覆盖 Web 线程和后台 worker 并发需求。",
+        "检查慢查询、长事务和手动 checkout 连接后未归还的问题。",
+        "监控数据库最大连接数，避免应用侧调大 pool 后压垮数据库。"
+      ]
+    },
+    {
+      "id": "ruby-native-extension-failure",
+      "title": "Ruby 原生扩展构建失败",
+      "tags": [
+        "ruby",
+        "dependency",
+        "build"
+      ],
+      "match": {
+        "any": [
+          "Gem::Ext::BuildError",
+          "Failed to build gem native extension",
+          "mkmf\\.rb can't find header files"
+        ]
+      },
+      "reason": "安装 Ruby gem 时原生扩展编译失败，通常缺少编译工具链、系统头文件或库依赖。",
+      "details": [
+        "nokogiri、pg、mysql2、grpc 等 gem 经常依赖系统库和头文件。",
+        "不同操作系统、Ruby 版本和 CPU 架构会影响可用预编译包。"
+      ],
+      "solutions": [
+        "安装对应系统依赖，例如 build-essential、ruby-dev、libpq-dev、mysqlclient-dev。",
+        "查看 mkmf.log，定位缺失的头文件或库。",
+        "在 Dockerfile/CI 中固定系统依赖，避免只在本地安装成功。"
+      ]
+    },
+    {
+      "id": "database-too-many-connections",
+      "title": "数据库连接数达到上限",
+      "tags": [
+        "database",
+        "mysql",
+        "postgres"
+      ],
+      "match": {
+        "any": [
+          "Too many connections",
+          "remaining connection slots are reserved",
+          "FATAL:\\s+sorry, too many clients already"
+        ]
+      },
+      "reason": "数据库服务端可用连接数已经耗尽，新连接被拒绝。",
+      "details": [
+        "这通常表示应用实例过多、连接池配置过大、连接泄漏，或数据库 max_connections 偏低。",
+        "单纯调大数据库连接上限可能会增加内存压力，需要同时看数据库负载。"
+      ],
+      "solutions": [
+        "统计所有应用实例的连接池上限总和，确认没有超过数据库承载能力。",
+        "排查空闲事务和连接泄漏，及时释放长时间占用的连接。",
+        "必要时调整数据库 max_connections，并同步优化连接池大小。"
+      ]
+    },
+    {
+      "id": "database-deadlock-detected",
+      "title": "数据库死锁",
+      "tags": [
+        "database",
+        "sql",
+        "transaction"
+      ],
+      "match": {
+        "any": [
+          "Deadlock found when trying to get lock",
+          "deadlock detected",
+          "SQLSTATE\\[40001\\]",
+          "ORA-00060"
+        ]
+      },
+      "reason": "多个事务以不同顺序持有并等待锁，数据库检测到死锁并回滚了其中一个事务。",
+      "details": [
+        "死锁常见于批量更新、并发扣减库存、相同表不同顺序更新等场景。",
+        "被回滚的事务通常可以重试，但仍应修正锁顺序和事务范围。"
+      ],
+      "solutions": [
+        "让相关事务按固定顺序访问表和行。",
+        "缩短事务时间，避免事务内调用远程接口或执行大量计算。",
+        "对可重试业务增加有限次数重试，并记录 deadlock 发生的 SQL 和参数。"
+      ]
+    },
+    {
+      "id": "database-lock-wait-timeout",
+      "title": "数据库锁等待超时",
+      "tags": [
+        "database",
+        "sql",
+        "transaction"
+      ],
+      "match": {
+        "any": [
+          "Lock wait timeout exceeded",
+          "canceling statement due to lock timeout",
+          "ORA-30006"
+        ]
+      },
+      "reason": "SQL 等待行锁或表锁超过数据库限制，当前语句被中止。",
+      "details": [
+        "常见原因是长事务未提交、批量任务占锁、DDL 与 DML 冲突。",
+        "这类问题需要找到持锁会话，而不只是重试失败的 SQL。"
+      ],
+      "solutions": [
+        "查看数据库当前锁等待和阻塞会话。",
+        "检查是否存在未提交事务、长时间运行的批处理或在线 DDL。",
+        "优化事务边界和索引，减少扫描范围导致的大面积锁定。"
+      ]
+    },
+    {
+      "id": "database-disk-full",
+      "title": "数据库磁盘空间不足",
+      "tags": [
+        "database",
+        "storage"
+      ],
+      "match": {
+        "any": [
+          "No space left on device",
+          "The table .* is full",
+          "could not extend file .* No space left",
+          "Disk full"
+        ]
+      },
+      "reason": "数据库所在磁盘或表空间不足，写入、建索引或临时文件创建失败。",
+      "details": [
+        "可能是数据文件、WAL/binlog、临时表、索引构建或备份文件占满磁盘。",
+        "空间不足会直接影响写入稳定性，需要优先处理。"
+      ],
+      "solutions": [
+        "检查数据库数据目录、日志目录和临时目录磁盘使用率。",
+        "清理过期 binlog/WAL、临时文件或无用备份，必要时扩容磁盘。",
+        "排查异常增长的表、索引或批处理任务。"
+      ]
+    },
+    {
+      "id": "redis-oom-command-not-allowed",
+      "title": "Redis 内存达到上限",
+      "tags": [
+        "redis",
+        "cache",
+        "memory"
+      ],
+      "match": {
+        "any": [
+          "OOM command not allowed when used memory > 'maxmemory'",
+          "command not allowed when used memory"
+        ]
+      },
+      "reason": "Redis 已达到 maxmemory 限制，当前写入命令被拒绝。",
+      "details": [
+        "如果淘汰策略是 noeviction，内存满后写命令会直接失败。",
+        "也可能是 key 过期策略不足、大 key 或缓存击穿后数据暴涨。"
+      ],
+      "solutions": [
+        "检查 Redis used_memory、maxmemory、evicted_keys 和 keyspace 命中率。",
+        "清理大 key 或无过期时间的缓存 key。",
+        "根据业务选择合适的 maxmemory-policy，并评估是否需要扩容。"
+      ]
+    },
+    {
+      "id": "redis-loading-dataset",
+      "title": "Redis 正在加载数据",
+      "tags": [
+        "redis",
+        "cache"
+      ],
+      "match": {
+        "any": [
+          "LOADING Redis is loading the dataset in memory",
+          "Redis is loading the dataset"
+        ]
+      },
+      "reason": "Redis 正在从 RDB/AOF 加载数据，暂时不能处理普通请求。",
+      "details": [
+        "常见于 Redis 重启、故障恢复或大数据量实例加载时间过长。",
+        "应用在加载期间可能出现短暂缓存不可用或启动失败。"
+      ],
+      "solutions": [
+        "等待 Redis 加载完成，并查看 Redis 日志确认加载耗时和数据量。",
+        "优化持久化文件大小，评估是否需要拆分实例或提升磁盘性能。",
+        "应用侧对缓存访问增加降级和重试，避免启动时强依赖 Redis。"
+      ]
+    },
+    {
+      "id": "redis-cluster-moved",
+      "title": "Redis Cluster 槽位重定向",
+      "tags": [
+        "redis",
+        "cluster"
+      ],
+      "match": {
+        "any": [
+          "MOVED \\d+ [\\w.-]+:\\d+",
+          "ASK \\d+ [\\w.-]+:\\d+",
+          "CLUSTERDOWN Hash slot not served"
+        ]
+      },
+      "variables": {
+        "slot": "(?:MOVED|ASK) (\\d+)"
+      },
+      "reason": "Redis Cluster 返回槽位 {{slot}} 的重定向或槽位不可用，客户端可能未正确按集群模式工作。",
+      "details": [
+        "如果普通单节点客户端连接 Redis Cluster，常会看到 MOVED/ASK 错误。",
+        "迁移槽位、节点故障或集群状态异常也会导致请求失败。"
+      ],
+      "solutions": [
+        "确认客户端启用了 Redis Cluster 模式，而不是普通 standalone 连接。",
+        "检查集群节点状态：`redis-cli -c cluster nodes` 和 `cluster info`。",
+        "如果正在迁移槽位，确认迁移完成后再观察错误是否消失。"
+      ]
+    },
+    {
+      "id": "kafka-broker-unavailable",
+      "title": "Kafka Broker 不可用",
+      "tags": [
+        "kafka",
+        "message-queue"
+      ],
+      "match": {
+        "any": [
+          "Broker may not be available",
+          "Connection to node -?\\d+ .* could not be established",
+          "Bootstrap broker .* disconnected",
+          "TimeoutException: Topic .* not present in metadata",
+          "Failed to update metadata after"
+        ]
+      },
+      "reason": "Kafka 客户端无法连接 broker 或获取元数据，消息生产/消费可能中断。",
+      "details": [
+        "常见原因是 broker 宕机、advertised.listeners 配置错误、安全组或 DNS 不通。",
+        "容器和 Kubernetes 环境中，broker 对外公布地址错误尤其常见。"
+      ],
+      "solutions": [
+        "从应用所在网络执行连通性测试，确认 bootstrap.servers 可达。",
+        "检查 Kafka advertised.listeners 是否返回客户端可访问的地址。",
+        "查看 broker 日志和集群状态，确认没有节点故障或网络分区。"
+      ]
+    },
+    {
+      "id": "kafka-unknown-topic-or-partition",
+      "title": "Kafka Topic 或分区不存在",
+      "tags": [
+        "kafka",
+        "message-queue"
+      ],
+      "match": {
+        "any": [
+          "UNKNOWN_TOPIC_OR_PARTITION",
+          "This server does not host this topic-partition",
+          "Topic .* not present in metadata"
+        ]
+      },
+      "variables": {
+        "topic": "Topic ([^\\s]+) not present|topic '([^']+)'"
+      },
+      "reason": "Kafka 找不到目标 topic {{topic}} 或对应分区，客户端无法完成读写。",
+      "details": [
+        "可能是 topic 名称配置错误、自动创建 topic 被禁用，或元数据尚未刷新。",
+        "也可能是集群刚发生分区迁移或 broker 异常。"
+      ],
+      "solutions": [
+        "用 `kafka-topics --describe` 确认 topic 和分区存在。",
+        "检查应用配置中的 topic 名称、环境变量和命名空间前缀。",
+        "如果刚创建 topic，等待元数据刷新或重启客户端验证。"
+      ]
+    },
+    {
+      "id": "kafka-offset-out-of-range",
+      "title": "Kafka 消费位点越界",
+      "tags": [
+        "kafka",
+        "consumer"
+      ],
+      "match": {
+        "any": [
+          "OffsetOutOfRangeException",
+          "Fetch offset \\d+ is out of range",
+          "No offset stored for partition"
+        ]
+      },
+      "reason": "消费者请求的 offset 已不在 Kafka 保留范围内，通常是消息过期或消费组位点异常。",
+      "details": [
+        "当消费者长时间停机，topic 保留时间内的数据被清理后容易发生。",
+        "错误处理方式取决于业务是否允许跳过历史消息。"
+      ],
+      "solutions": [
+        "确认 topic retention.ms/retention.bytes 是否满足最长停机恢复时间。",
+        "根据业务选择 earliest/latest 或手动重置消费组 offset。",
+        "为关键消费链路增加消费滞后监控和告警。"
+      ]
+    },
+    {
+      "id": "rabbitmq-precondition-failed",
+      "title": "RabbitMQ 队列声明参数冲突",
+      "tags": [
+        "rabbitmq",
+        "message-queue"
+      ],
+      "match": {
+        "any": [
+          "PRECONDITION_FAILED",
+          "inequivalent arg '.*' for queue",
+          "reply-code=406"
+        ]
+      },
+      "reason": "应用声明的 RabbitMQ queue/exchange 参数与服务端已存在定义不一致。",
+      "details": [
+        "常见冲突包括 durable、exclusive、autoDelete、x-message-ttl、x-dead-letter-exchange 等参数不同。",
+        "RabbitMQ 不允许用不同参数重新声明同名队列。"
+      ],
+      "solutions": [
+        "比对应用配置和 RabbitMQ 管理台中队列的实际参数。",
+        "如需变更参数，创建新队列迁移流量，或在可接受窗口删除旧队列后重建。",
+        "避免多个服务用不同配置声明同一个队列名。"
+      ]
+    },
+    {
+      "id": "rabbitmq-auth-vhost-denied",
+      "title": "RabbitMQ 虚拟主机权限不足",
+      "tags": [
+        "rabbitmq",
+        "message-queue",
+        "auth"
+      ],
+      "match": {
+        "any": [
+          "ACCESS_REFUSED",
+          "Login was refused",
+          "not authorised to access vhost",
+          "vhost .* not found"
+        ]
+      },
+      "reason": "RabbitMQ 拒绝当前用户登录或访问指定 vhost，通常是账号、密码或 vhost 权限配置错误。",
+      "details": [
+        "RabbitMQ 权限按 vhost 隔离，同一用户需要显式授予 configure/write/read 权限。",
+        "连接 URL 中的 vhost 编码错误也会导致访问失败。"
+      ],
+      "solutions": [
+        "确认连接串中的用户名、密码和 vhost 与当前环境一致。",
+        "在 RabbitMQ 管理台或 `rabbitmqctl list_permissions` 查看用户权限。",
+        "注意 URL 中 `/` vhost 需要正确编码为 `%2F`。"
+      ]
+    },
+    {
+      "id": "elasticsearch-circuit-breaker",
+      "title": "Elasticsearch/OpenSearch 熔断器触发",
+      "tags": [
+        "elasticsearch",
+        "opensearch",
+        "memory"
+      ],
+      "match": {
+        "any": [
+          "circuit_breaking_exception",
+          "Data too large",
+          "\\[parent\\] Data too large"
+        ]
+      },
+      "reason": "Elasticsearch/OpenSearch 估算当前请求会占用过多内存，因此触发熔断并拒绝执行。",
+      "details": [
+        "常见于大聚合、深分页、一次返回过多字段或 bulk 请求过大。",
+        "这通常不是简单的客户端错误，而是查询形态和集群内存压力共同导致。"
+      ],
+      "solutions": [
+        "缩小查询时间范围、分页大小和聚合桶数量。",
+        "避免 from+size 深分页，改用 search_after 或 scroll。",
+        "查看 JVM heap、fielddata、request breaker 指标，必要时扩容或优化 mapping。"
+      ]
+    },
+    {
+      "id": "elasticsearch-read-only-block",
+      "title": "Elasticsearch/OpenSearch 索引只读",
+      "tags": [
+        "elasticsearch",
+        "opensearch",
+        "storage"
+      ],
+      "match": {
+        "any": [
+          "FORBIDDEN/12/index read-only / allow delete",
+          "cluster_block_exception",
+          "read_only_allow_delete"
+        ]
+      },
+      "reason": "集群触发磁盘水位保护，将索引设为只读，写入请求被拒绝。",
+      "details": [
+        "当节点磁盘超过 flood stage watermark 时，ES/OpenSearch 会自动保护索引。",
+        "即使清理磁盘后，也可能需要手动解除索引只读设置。"
+      ],
+      "solutions": [
+        "先释放或扩容数据节点磁盘，确认低于水位线。",
+        "执行解除只读设置：`index.blocks.read_only_allow_delete=false`。",
+        "检查索引生命周期、分片数量和日志保留策略，避免再次触发。"
+      ]
+    },
+    {
+      "id": "elasticsearch-mapper-parsing",
+      "title": "Elasticsearch/OpenSearch 字段映射冲突",
+      "tags": [
+        "elasticsearch",
+        "opensearch",
+        "mapping"
+      ],
+      "match": {
+        "any": [
+          "mapper_parsing_exception",
+          "failed to parse field",
+          "object mapping for .* tried to parse field"
+        ]
+      },
+      "reason": "写入文档中的字段类型与索引 mapping 不兼容，导致文档入库失败。",
+      "details": [
+        "常见情况是同一字段有时是字符串，有时是对象或数字。",
+        "日志采集链路中字段名复用、动态 mapping 失控也会触发该问题。"
+      ],
+      "solutions": [
+        "查看失败字段的实际值和当前 index mapping。",
+        "在采集端统一字段类型，必要时重命名冲突字段。",
+        "为日志索引使用明确模板，避免动态 mapping 随机推断。"
+      ]
+    },
+    {
+      "id": "docker-no-space-left",
+      "title": "Docker 存储空间不足",
+      "tags": [
+        "docker",
+        "storage"
+      ],
+      "match": {
+        "any": [
+          "failed to register layer.*no space left on device",
+          "write .* no space left",
+          "overlay2.*no space left"
+        ]
+      },
+      "reason": "Docker 数据目录或宿主机磁盘空间不足，镜像拉取、容器写入或构建失败。",
+      "details": [
+        "常见占用来源包括旧镜像、停止的容器、构建缓存、日志文件和 volume。",
+        "生产环境清理前需要确认 volume 是否包含业务数据。"
+      ],
+      "solutions": [
+        "使用 `docker system df` 查看镜像、容器、缓存和 volume 占用。",
+        "清理无用镜像、停止容器和 build cache，谨慎处理 volume。",
+        "为 Docker data-root 扩容或迁移到更大的磁盘。"
+      ]
+    },
+    {
+      "id": "container-oom-killed",
+      "title": "容器被 OOMKilled",
+      "tags": [
+        "docker",
+        "kubernetes",
+        "memory"
+      ],
+      "match": {
+        "any": [
+          "OOMKilled",
+          "Killed process \\d+ .* total-vm",
+          "Container .* was OOMKilled",
+          "exit code 137"
+        ]
+      },
+      "reason": "容器内进程超过内存限制，被内核或 Kubernetes 终止。",
+      "details": [
+        "退出码 137 通常表示进程收到 SIGKILL，Kubernetes 中常伴随 OOMKilled。",
+        "需要区分是内存限制过低，还是应用存在内存泄漏或峰值过高。"
+      ],
+      "solutions": [
+        "查看 pod/container 的 memory limit、实际峰值和重启时间点。",
+        "分析应用堆内存、缓存、大批量处理和并发配置。",
+        "在修复内存增长原因后，再合理调整 requests/limits。"
+      ]
+    },
+    {
+      "id": "kubernetes-probe-failed",
+      "title": "Kubernetes 健康探针失败",
+      "tags": [
+        "kubernetes",
+        "healthcheck"
+      ],
+      "match": {
+        "any": [
+          "Liveness probe failed",
+          "Readiness probe failed",
+          "Startup probe failed",
+          "HTTP probe failed with statuscode",
+          "context deadline exceeded"
+        ]
+      },
+      "reason": "Kubernetes 探针检查失败，Pod 可能被摘出流量或重启。",
+      "details": [
+        "探针失败可能是应用真的不可用，也可能是探针路径、端口、超时时间配置不合理。",
+        "启动慢的服务如果没有 startupProbe，可能在完成初始化前被 livenessProbe 杀掉。"
+      ],
+      "solutions": [
+        "用 `kubectl describe pod` 查看探针失败事件和具体状态码。",
+        "在 Pod 内部 curl 探针地址，确认路径、端口和协议正确。",
+        "为慢启动服务配置 startupProbe，并合理调整 timeoutSeconds/failureThreshold。"
+      ]
+    },
+    {
+      "id": "kubernetes-rbac-forbidden",
+      "title": "Kubernetes RBAC 权限不足",
+      "tags": [
+        "kubernetes",
+        "rbac",
+        "auth"
+      ],
+      "match": {
+        "any": [
+          "forbidden: User .* cannot .* resource",
+          "is forbidden: User",
+          "RBAC: access denied"
+        ]
+      },
+      "reason": "当前用户或 ServiceAccount 没有执行目标 Kubernetes 操作的权限。",
+      "details": [
+        "常见于控制器、CI/CD、运维脚本使用的 ServiceAccount 缺少 Role/ClusterRoleBinding。",
+        "权限应按最小权限原则补齐，避免直接授予 cluster-admin。"
+      ],
+      "solutions": [
+        "确认报错中的 user/serviceaccount、verb、resource 和 namespace。",
+        "用 `kubectl auth can-i` 复现权限判断。",
+        "补充合适的 Role/ClusterRole 与 Binding，并限制到必要命名空间。"
+      ]
+    },
+    {
+      "id": "kubernetes-pod-unschedulable",
+      "title": "Kubernetes Pod 无法调度",
+      "tags": [
+        "kubernetes",
+        "scheduler"
+      ],
+      "match": {
+        "any": [
+          "0/\\d+ nodes are available",
+          "Insufficient cpu",
+          "Insufficient memory",
+          "node\\(s\\) had taint",
+          "didn't match Pod's node affinity"
+        ]
+      },
+      "reason": "调度器找不到满足资源、污点容忍、亲和性或约束条件的节点。",
+      "details": [
+        "Pending 状态不是应用启动失败，而是 Pod 还没有被分配到节点。",
+        "常见原因是资源 request 过高、节点污点未容忍、节点选择器或亲和性过窄。"
+      ],
+      "solutions": [
+        "查看 `kubectl describe pod` 的 Events 中调度失败原因。",
+        "检查 CPU/内存 requests、nodeSelector、affinity 和 tolerations。",
+        "扩容节点、降低不合理 request，或调整调度约束。"
+      ]
+    },
+    {
+      "id": "nginx-request-body-too-large",
+      "title": "Nginx 请求体过大",
+      "tags": [
+        "nginx",
+        "ingress",
+        "http"
+      ],
+      "match": {
+        "any": [
+          "client intended to send too large body",
+          "Request Entity Too Large",
+          "\\b413\\b"
+        ]
+      },
+      "reason": "请求体大小超过 Nginx/Ingress 限制，上传或大请求被拒绝。",
+      "details": [
+        "常见于文件上传、批量导入、大 JSON 请求。",
+        "如果链路上有多层网关，每一层都可能有独立的 body size 限制。"
+      ],
+      "solutions": [
+        "确认失败请求的实际大小和业务允许的最大上传大小。",
+        "调整 Nginx `client_max_body_size` 或 Ingress 对应注解。",
+        "同时检查应用框架、API 网关和负载均衡层的请求大小限制。"
+      ]
+    },
+    {
+      "id": "ingress-service-no-endpoints",
+      "title": "Ingress 后端没有可用端点",
+      "tags": [
+        "kubernetes",
+        "ingress",
+        "nginx"
+      ],
+      "match": {
+        "any": [
+          "Service .* does not have any active Endpoint",
+          "no endpoints available for service",
+          "endpoints .* not found"
+        ]
+      },
+      "reason": "Ingress 指向的 Kubernetes Service 当前没有可用 Pod endpoint。",
+      "details": [
+        "常见原因是 Service selector 与 Pod labels 不匹配，或 Pod readiness 未通过。",
+        "这会导致网关返回 503 或无法转发到后端。"
+      ],
+      "solutions": [
+        "检查 Service selector 是否匹配目标 Pod labels。",
+        "查看 EndpointSlice/Endpoints 是否为空。",
+        "确认后端 Pod 处于 Ready 状态，健康探针没有失败。"
+      ]
+    },
+    {
+      "id": "tls-certificate-expired",
+      "title": "TLS 证书已过期或尚未生效",
+      "tags": [
+        "tls",
+        "certificate",
+        "network"
+      ],
+      "match": {
+        "any": [
+          "certificate has expired",
+          "x509: certificate has expired",
+          "certificate is not yet valid",
+          "ERR_CERT_DATE_INVALID",
+          "CertPathValidatorException: validity check failed"
+        ]
+      },
+      "reason": "TLS 证书时间范围无效，客户端拒绝建立安全连接。",
+      "details": [
+        "证书过期、系统时间错误、证书自动续签失败都可能触发。",
+        "如果只有部分节点报错，可能是负载均衡后端证书不一致。"
+      ],
+      "solutions": [
+        "检查证书 Not Before/Not After 时间和服务器系统时间。",
+        "确认自动续签任务、Ingress Secret 或负载均衡证书已更新。",
+        "验证所有入口节点返回的是同一张有效证书链。"
+      ]
+    },
+    {
+      "id": "tls-hostname-mismatch",
+      "title": "TLS 证书域名不匹配",
+      "tags": [
+        "tls",
+        "certificate",
+        "dns"
+      ],
+      "match": {
+        "any": [
+          "No subject alternative DNS name matching .* found",
+          "certificate is valid for .* not",
+          "ERR_CERT_COMMON_NAME_INVALID",
+          "x509: certificate is valid for .* not"
+        ]
+      },
+      "reason": "服务端证书中的域名与客户端访问的 hostname 不一致。",
+      "details": [
+        "常见于使用了错误证书、访问了内部域名、Ingress host 配置错，或 SNI 未正确传递。",
+        "现代客户端主要校验 SAN，而不是只看 Common Name。"
+      ],
+      "solutions": [
+        "检查访问域名是否包含在证书 SAN 列表中。",
+        "确认 Ingress/负载均衡按正确 host 绑定了对应证书。",
+        "如果经过代理，确认客户端 SNI 和上游 TLS server_name 设置正确。"
+      ]
+    },
+    {
+      "id": "dns-resolution-failed",
+      "title": "DNS 解析失败",
+      "tags": [
+        "dns",
+        "network"
+      ],
+      "match": {
+        "any": [
+          "ENOTFOUND",
+          "UnknownHostException",
+          "Name or service not known",
+          "Temporary failure in name resolution",
+          "NXDOMAIN"
+        ]
+      },
+      "variables": {
+        "host": "UnknownHostException: ([\\w.-]+)|ENOTFOUND ([\\w.-]+)|NXDOMAIN.* ([\\w.-]+)"
+      },
+      "reason": "主机名 {{host}} 无法解析为 IP 地址，请求在建立连接前失败。",
+      "details": [
+        "可能是域名拼写错误、DNS 记录缺失、容器 DNS 配置异常或内网域名在当前网络不可见。",
+        "偶发解析失败还需要检查 DNS 服务稳定性和缓存。"
+      ],
+      "solutions": [
+        "在应用所在机器或 Pod 内执行 `nslookup`/`dig` 验证解析。",
+        "检查配置中的域名、搜索域、Kubernetes Service 名称和命名空间。",
+        "排查 CoreDNS、VPC DNS、防火墙或本机 resolv.conf 配置。"
+      ]
+    },
+    {
+      "id": "network-connection-timeout",
+      "title": "网络连接超时",
+      "tags": [
+        "network",
+        "cloud"
+      ],
+      "match": {
+        "any": [
+          "connect timed out",
+          "Connection timed out",
+          "ETIMEDOUT",
+          "i/o timeout",
+          "dial tcp .* timeout"
+        ]
+      },
+      "reason": "客户端在限定时间内无法与目标地址建立连接，常见于网络路径、路由、防火墙或安全组问题。",
+      "details": [
+        "连接超时不同于连接拒绝：通常表示请求包没有得到响应。",
+        "云环境中常见原因包括安全组、NACL、路由表、私网/公网地址混用。"
+      ],
+      "solutions": [
+        "从应用所在网络测试目标 host/port 连通性。",
+        "检查安全组、防火墙、路由表、代理和 Kubernetes NetworkPolicy。",
+        "确认目标服务监听地址正确，并且没有只绑定 localhost。"
+      ]
+    },
+    {
+      "id": "cloud-api-throttled",
+      "title": "云服务 API 被限流",
+      "tags": [
+        "cloud",
+        "rate-limit"
+      ],
+      "match": {
+        "any": [
+          "ThrottlingException",
+          "Rate exceeded",
+          "TooManyRequestsException",
+          "\\b429 Too Many Requests\\b",
+          "RequestLimitExceeded"
+        ]
+      },
+      "reason": "调用云服务或外部 API 的频率超过限制，请求被限流。",
+      "details": [
+        "限流可能来自云厂商控制面 API、对象存储、短信邮件服务或第三方 SaaS。",
+        "持续重试但没有退避会放大限流并拖慢系统。"
+      ],
+      "solutions": [
+        "为请求增加指数退避和抖动，避免立即密集重试。",
+        "降低并发、合并批量操作或增加本地缓存。",
+        "查看云服务配额，必要时申请提升限制或拆分调用节奏。"
       ]
     }
   ]
