@@ -32,6 +32,15 @@ const previewMeta = document.getElementById("previewMeta");
 const exportJsonBtn = document.getElementById("exportJsonBtn");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 
+const optMergeStack = document.getElementById("optMergeStack");
+const optCollapseDup = document.getElementById("optCollapseDup");
+
+const patternTableBody = document.getElementById("patternTableBody");
+const patternPanel = document.getElementById("patternPanel");
+const patternTitle = document.getElementById("patternTitle");
+const patternBody = document.getElementById("patternBody");
+const patternClose = document.getElementById("patternClose");
+
 const themeToggle = document.getElementById("themeToggle");
 
 // ---------- Constants ----------
@@ -95,12 +104,37 @@ const SAMPLE_LOG = `2024-05-21 08:01:12 INFO  service started on port 8080
 
 // ---------- State ----------
 let state = {
-  rows: [], // { lineNo, raw, level, hourKey, dayKey }
+  rows: [], // { lineNo, raw, level, hourKey, dayKey, count, lineSpan }
   result: null,
   granularity: "hour",
   activeLevels: new Set(LEVELS.concat(["OTHER"])),
   search: "",
+  lastInput: null, // { text, fileCount, label } — for re-analysis on option change
 };
+
+// A physical line is a continuation of the previous log event (stack frame,
+// "Caused by", indented traceback, etc.) rather than a new event.
+function isContinuation(line, prev) {
+  if (!prev) return false;
+  if (/^\s/.test(line)) return true; // indented (Java frames, Python "  File")
+  if (/^(at\s|\.{3}\s?|Caused by:|Suppressed:|Traceback \(most recent)/.test(line)) {
+    return true;
+  }
+  // Flush-left exception header / summary line (no leading timestamp), e.g.
+  // "java.lang.NullPointerException: ..." right after the ERROR log line, or
+  // Python's trailing "ValueError: bad input" after the "  File ..." lines.
+  if (
+    !startsWithTimestamp(line) &&
+    /^(?:[\w$]+\.)*[\w$]*(?:Exception|Error|Throwable)\b/.test(line)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function startsWithTimestamp(line) {
+  return /^\s*[\[(]?(\d{4}-\d{2}-\d{2}|\d{2}:\d{2}:\d{2}|[A-Z][a-z]{2}\s+\d)/.test(line);
+}
 
 // ---------- Theme ----------
 function applyTheme(theme) {
@@ -204,7 +238,12 @@ clearBtn.addEventListener("click", () => {
 
 // ---------- Analysis ----------
 function runAnalysis(text, fileCount, label) {
-  const rows = parseLines(text);
+  state.lastInput = { text, fileCount, label };
+  const opts = {
+    mergeStack: optMergeStack.checked,
+    collapseDup: optCollapseDup.checked,
+  };
+  const rows = parseLines(text, opts);
   state.rows = rows;
   state.result = summarize(rows, fileCount);
   state.activeLevels = new Set(LEVELS.concat(["OTHER"]));
@@ -217,24 +256,68 @@ function runAnalysis(text, fileCount, label) {
   renderLevelBreakdown(state.result);
   renderFrequency(state.result.frequencies);
   renderTrend();
+  renderPatterns(state.result.patterns);
   renderLevelFilters();
   renderPreview();
   hideSample();
+  hidePattern();
 
   const suffix = label ? `（${label}）` : "";
-  statusEl.textContent = `分析完成${suffix}：共 ${state.result.totalLines} 行，错误 ${state.result.errorLines} 行。`;
+  const r = state.result;
+  let note = `分析完成${suffix}：共 ${r.totalLines} 条，错误 ${r.errorLines} 条。`;
+  if (r.mergedStacks) note += ` 合并 ${r.mergedStacks} 段多行堆栈。`;
+  if (r.collapsedGroups) note += ` 折叠 ${r.collapsedGroups} 组重复行。`;
+  statusEl.textContent = note;
 }
 
-function parseLines(text) {
+// Re-run analysis when parse options change (if something is already loaded).
+[optMergeStack, optCollapseDup].forEach((cb) =>
+  cb.addEventListener("change", () => {
+    if (state.lastInput) {
+      const { text, fileCount, label } = state.lastInput;
+      runAnalysis(text, fileCount, label);
+    }
+  })
+);
+
+function parseLines(text, opts = { mergeStack: true, collapseDup: true }) {
   const lines = text.split(/\r?\n/);
-  const rows = [];
-  let lineNo = 0;
+  const entries = [];
+  let physicalNo = 0;
+
+  // Pass 1: build events, merging multi-line stack continuations.
   for (const raw of lines) {
     if (raw.trim() === "") continue;
-    lineNo += 1;
-    const level = detectLevel(raw);
-    const { hourKey, dayKey } = extractTimeKeys(raw);
-    rows.push({ lineNo, raw, level, hourKey, dayKey });
+    physicalNo += 1;
+    const prev = entries[entries.length - 1];
+    if (opts.mergeStack && isContinuation(raw, prev)) {
+      prev.raw += `\n${raw}`;
+      prev.lineSpan += 1;
+      prev.merged = true;
+      continue;
+    }
+    entries.push({
+      lineNo: physicalNo,
+      raw,
+      level: detectLevel(raw),
+      ...extractTimeKeys(raw),
+      count: 1,
+      lineSpan: 1,
+      merged: false,
+    });
+  }
+
+  if (!opts.collapseDup) return entries;
+
+  // Pass 2: collapse consecutive identical events into one with a count.
+  const rows = [];
+  for (const entry of entries) {
+    const prev = rows[rows.length - 1];
+    if (prev && prev.raw === entry.raw && prev.level === entry.level) {
+      prev.count += 1;
+      continue;
+    }
+    rows.push(entry);
   }
   return rows;
 }
@@ -282,30 +365,51 @@ function numericLevel(n) {
 }
 
 function summarize(rows, fileCount) {
-  const totalLines = rows.length;
   const levelCounter = new Map();
   const errorTypeCounter = new Map();
   const errorSamples = new Map();
   const hourCounter = new Map();
   const dayCounter = new Map();
+  const patternCounter = new Map();
+  const patternSamples = new Map();
+  let totalLines = 0;
   let errorLines = 0;
+  let mergedStacks = 0;
+  let collapsedGroups = 0;
 
   for (const row of rows) {
-    levelCounter.set(row.level, (levelCounter.get(row.level) || 0) + 1);
+    const n = row.count; // duplicate-collapse weight (occurrences)
+    totalLines += n;
+    if (row.merged) mergedStacks += 1;
+    if (row.count > 1) collapsedGroups += 1;
+
+    levelCounter.set(row.level, (levelCounter.get(row.level) || 0) + n);
+
+    // Message-pattern clustering across ALL levels.
+    const tpl = templateOf(row.raw);
+    patternCounter.set(tpl, (patternCounter.get(tpl) || 0) + n);
+    if (!patternSamples.has(tpl)) patternSamples.set(tpl, []);
+    const psamples = patternSamples.get(tpl);
+    if (psamples.length < 5) psamples.push(row.raw.split("\n")[0]);
+
     if (!ERROR_LEVELS.has(row.level)) continue;
 
-    errorLines += 1;
+    errorLines += n;
     const type = extractErrorType(row.raw);
-    errorTypeCounter.set(type, (errorTypeCounter.get(type) || 0) + 1);
+    errorTypeCounter.set(type, (errorTypeCounter.get(type) || 0) + n);
     if (!errorSamples.has(type)) errorSamples.set(type, []);
     const samples = errorSamples.get(type);
     if (samples.length < 5) samples.push(row.raw);
 
-    hourCounter.set(row.hourKey, (hourCounter.get(row.hourKey) || 0) + 1);
-    dayCounter.set(row.dayKey, (dayCounter.get(row.dayKey) || 0) + 1);
+    hourCounter.set(row.hourKey, (hourCounter.get(row.hourKey) || 0) + n);
+    dayCounter.set(row.dayKey, (dayCounter.get(row.dayKey) || 0) + n);
   }
 
   const frequencies = Array.from(errorTypeCounter.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+
+  const patterns = Array.from(patternCounter.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
 
@@ -314,12 +418,35 @@ function summarize(rows, fileCount) {
     errorLines,
     errorRate: totalLines ? (errorLines / totalLines) * 100 : 0,
     fileCount,
+    events: rows.length,
+    mergedStacks,
+    collapsedGroups,
     levels: levelCounter,
     frequencies,
     errorSamples,
+    patterns,
+    patternSamples,
     hourTrend: sortTrend(hourCounter),
     dayTrend: sortTrend(dayCounter),
   };
+}
+
+// Normalise a log line into a template by replacing variable tokens with
+// placeholders, so structurally-similar messages cluster together.
+function templateOf(raw) {
+  let s = raw.split("\n")[0];
+  s = s
+    .replace(/\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?(?:Z|[+-]\d{2}:?\d{2})?/g, "<TIME>")
+    .replace(/\b[A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\b/g, "<TIME>")
+    .replace(/\b\d{2}:\d{2}:\d{2}(?:[.,]\d+)?\b/g, "<TIME>")
+    .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, "<UUID>")
+    .replace(/\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b/g, "<IP>")
+    .replace(/\b0x[0-9a-f]+\b/gi, "<HEX>")
+    .replace(/"[^"]*"|'[^']*'/g, "<STR>")
+    .replace(/\d+/g, "<NUM>")
+    .replace(/\s+/g, " ")
+    .trim();
+  return s.length > 120 ? `${s.slice(0, 120)}...` : s || "(空)";
 }
 
 function sortTrend(counter) {
@@ -475,6 +602,50 @@ function hideSample() {
 
 sampleClose.addEventListener("click", hideSample);
 
+function renderPatterns(patterns) {
+  if (!patterns || !patterns.length) {
+    patternTableBody.innerHTML =
+      '<tr><td colspan="2" class="muted">暂无数据</td></tr>';
+    return;
+  }
+  patternTableBody.innerHTML = patterns
+    .map(
+      ([tpl, count], i) => `
+        <tr class="pattern-row" data-idx="${i}">
+          <td title="${escapeHtml(tpl)}"><code>${escapeHtml(tpl)}</code></td>
+          <td class="num">${count}</td>
+        </tr>`
+    )
+    .join("");
+
+  patternTableBody.querySelectorAll(".pattern-row").forEach((tr) => {
+    tr.addEventListener("click", () => {
+      const [tpl] = patterns[Number(tr.dataset.idx)];
+      showPattern(tpl, tr);
+    });
+  });
+}
+
+function showPattern(tpl, rowEl) {
+  const samples = state.result?.patternSamples.get(tpl) || [];
+  patternTableBody
+    .querySelectorAll(".pattern-row")
+    .forEach((r) => r.classList.remove("active"));
+  rowEl.classList.add("active");
+  patternTitle.textContent = `样例：${tpl}`;
+  patternBody.textContent = samples.join("\n") || "（无样例）";
+  patternPanel.hidden = false;
+}
+
+function hidePattern() {
+  patternPanel.hidden = true;
+  patternTableBody
+    .querySelectorAll(".pattern-row")
+    .forEach((r) => r.classList.remove("active"));
+}
+
+patternClose.addEventListener("click", hidePattern);
+
 function renderTrend() {
   const trend =
     state.granularity === "day"
@@ -549,14 +720,17 @@ function renderPreview() {
 
   const shown = filtered.slice(0, PREVIEW_LIMIT);
   previewBody.innerHTML = shown
-    .map(
-      (row) => `
+    .map((row) => {
+      const dup = row.count > 1 ? `<span class="dup-badge">×${row.count}</span>` : "";
+      const stack =
+        row.lineSpan > 1 ? `<span class="stack-badge">堆栈 ${row.lineSpan} 行</span>` : "";
+      return `
       <tr>
         <td class="num">${row.lineNo}</td>
-        <td class="lvl"><span class="badge badge-${row.level}">${row.level}</span></td>
-        <td class="line-content">${highlight(row.raw, search)}</td>
-      </tr>`
-    )
+        <td class="lvl"><span class="badge badge-${row.level}">${row.level}</span>${dup}</td>
+        <td class="line-content">${highlight(row.raw, search)}${stack}</td>
+      </tr>`;
+    })
     .join("");
 
   if (!filtered.length) {
@@ -564,9 +738,12 @@ function renderPreview() {
       '<tr><td colspan="3" class="muted">没有匹配的日志行</td></tr>';
   }
 
-  let meta = `显示 ${shown.length} / ${filtered.length} 行`;
+  let meta = `显示 ${shown.length} / ${filtered.length} 条`;
   if (filtered.length > PREVIEW_LIMIT) {
-    meta += `（仅预览前 ${PREVIEW_LIMIT} 行）`;
+    meta += `（仅预览前 ${PREVIEW_LIMIT} 条）`;
+  }
+  if (state.result) {
+    meta += ` · 共 ${state.result.events} 条事件 / ${state.result.totalLines} 行`;
   }
   previewMeta.textContent = meta;
 }
@@ -588,8 +765,12 @@ exportJsonBtn.addEventListener("click", () => {
     errorLines: r.errorLines,
     errorRate: Number(r.errorRate.toFixed(2)),
     fileCount: r.fileCount,
+    events: r.events,
+    mergedStacks: r.mergedStacks,
+    collapsedGroups: r.collapsedGroups,
     levels: Object.fromEntries(r.levels),
     errorTypes: r.frequencies.map(([type, count]) => ({ type, count })),
+    messagePatterns: r.patterns.map(([pattern, count]) => ({ pattern, count })),
     hourTrend: r.hourTrend.map(([time, count]) => ({ time, count })),
     dayTrend: r.dayTrend.map(([date, count]) => ({ date, count })),
   };
