@@ -52,6 +52,14 @@
           <span id="status" class="status">等待上传文件</span>
         </div>
         <ul id="fileList" class="file-list" hidden></ul>
+        <div class="parse-options">
+          <label class="opt" title="把 Java/Python 等跨多行的异常堆栈并入上一条日志">
+            <input type="checkbox" id="optMergeStack" checked /> 合并多行堆栈
+          </label>
+          <label class="opt" title="把连续完全相同的行折叠为一条并标注重复次数">
+            <input type="checkbox" id="optCollapseDup" checked /> 折叠重复行
+          </label>
+        </div>
       </section>
 
       <!-- 空状态引导 -->
@@ -138,6 +146,34 @@
             </div>
           </section>
         </div>
+
+        <!-- 消息模式聚类 -->
+        <section class="card">
+          <div class="card-head">
+            <h2>消息模式（Top 10）</h2>
+            <span class="muted small">把数字 / UUID / IP 等变量模板化后归并相似消息，点击查看样例</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>消息模式</th>
+                <th class="num">次数</th>
+              </tr>
+            </thead>
+            <tbody id="patternTableBody">
+              <tr>
+                <td colspan="2" class="muted">暂无数据</td>
+              </tr>
+            </tbody>
+          </table>
+          <div id="patternPanel" class="sample-panel" hidden>
+            <div class="sample-head">
+              <strong id="patternTitle"></strong>
+              <button id="patternClose" type="button" class="ghost-btn small">关闭</button>
+            </div>
+            <pre id="patternBody" class="sample-body"></pre>
+          </div>
+        </section>
 
         <!-- 日志预览 -->
         <section class="card">
