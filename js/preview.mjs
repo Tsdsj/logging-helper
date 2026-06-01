@@ -123,12 +123,20 @@ function renderDiagnosticDetail(diagnostic) {
         <td colspan="2">
           <div class="diagnostic-detail">
             <strong>${escapeHtml(diagnostic.title)}</strong>
+            ${renderMatchEvidence(diagnostic.matchEvidence)}
             <p>${escapeHtml(diagnostic.reason)}</p>
             ${renderDiagnosticList("常见原因", diagnostic.details)}
             ${renderDiagnosticList("解决方案", diagnostic.solutions)}
           </div>
         </td>
       </tr>`;
+}
+
+function renderMatchEvidence(evidence) {
+  if (!evidence) return "";
+  return `<p class="diagnostic-match">Matched because <code>${escapeHtml(
+    evidence.ruleId
+  )}</code> matched <code>${escapeHtml(evidence.pattern)}</code></p>`;
 }
 
 function renderContextDetail(row, rows) {

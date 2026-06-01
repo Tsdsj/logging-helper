@@ -864,6 +864,16 @@ button.filter-chip:hover {
   color: var(--text);
 }
 
+.diagnostic-detail .diagnostic-match {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.diagnostic-match code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  word-break: break-word;
+}
+
 .diagnostic-section {
   margin-top: 8px;
 }

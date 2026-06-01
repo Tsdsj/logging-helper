@@ -27,6 +27,10 @@ const row = {
 const diagnostic = findDiagnostic(row, rules);
 assert.ok(diagnostic, "Port conflict should match a diagnostic rule");
 assert.equal(diagnostic.id, "port-already-in-use");
+assert.deepEqual(diagnostic.matchEvidence, {
+  ruleId: "port-already-in-use",
+  pattern: "\\bWeb server failed to start\\.\\s+Port\\s+\\d+\\s+was already in use\\.",
+});
 assert.match(diagnostic.reason, /端口 8080/);
 assert.ok(diagnostic.solutions.some((item) => item.includes("netstat -ano")));
 
@@ -49,6 +53,9 @@ const expanded = renderPreviewRow(row, null, {
 assert.match(expanded, /preview-detail-row/);
 assert.match(expanded, /Identify and stop the process/);
 assert.match(expanded, /端口 8080/);
+assert.match(expanded, /Matched because/);
+assert.match(expanded, /port-already-in-use/);
+assert.match(expanded, /Web server failed to start/);
 assert.match(expanded, /修改应用端口/);
 
 console.log("Preview diagnostics regression passed");

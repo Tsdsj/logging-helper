@@ -101,7 +101,7 @@
       "Verify existing diagnostic suggestions still show their reason and solution lists."
     ],
     "budget_minutes": 8,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "custom-diagnostics-import",

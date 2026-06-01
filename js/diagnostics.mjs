@@ -8,7 +8,10 @@ export function loadDiagnosticRules(data) {
   return rules.map((rule) => ({
     ...rule,
     match: {
-      any: (rule.match?.any || []).map((pattern) => new RegExp(pattern, "i")),
+      any: (rule.match?.any || []).map((pattern) => ({
+        pattern,
+        regex: new RegExp(pattern, "i"),
+      })),
     },
     variables: Object.fromEntries(
       Object.entries(rule.variables || {}).map(([name, pattern]) => [
@@ -22,8 +25,9 @@ export function loadDiagnosticRules(data) {
 export function findDiagnostic(row, rules = []) {
   if (!row || !ERROR_LEVELS.has(row.level)) return null;
   const raw = row.raw || "";
-  const rule = rules.find((item) => item.match.any.some((re) => re.test(raw)));
-  if (!rule) return null;
+  const match = findRuleMatch(raw, rules);
+  if (!match) return null;
+  const { rule, pattern } = match;
   const vars = extractVariables(raw, rule.variables);
   return {
     id: rule.id,
@@ -32,7 +36,19 @@ export function findDiagnostic(row, rules = []) {
     details: (rule.details || []).map((item) => interpolate(item, vars)),
     solutions: (rule.solutions || []).map((item) => interpolate(item, vars)),
     tags: rule.tags || [],
+    matchEvidence: {
+      ruleId: rule.id,
+      pattern,
+    },
   };
+}
+
+function findRuleMatch(raw, rules) {
+  for (const rule of rules) {
+    const matched = rule.match.any.find((item) => item.regex.test(raw));
+    if (matched) return { rule, pattern: matched.pattern };
+  }
+  return null;
 }
 
 function extractVariables(raw, variablePatterns) {
