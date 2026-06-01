@@ -4,7 +4,7 @@
 - Log intelligence planning queue initialized with `$Task_init`.
 
 ## First Pending Task
-- `issue-report-copy-action`
+- `trace-id-detection`
 
 ## Recommended Next Reads
 - `AGENTS.md`
@@ -23,3 +23,4 @@
 - Completed `root-cause-python-traceback`: Python tracebacks now show the final exception line as root cause in the same expanded preview detail area.
 - Completed `preview-context-window`: ERROR and FATAL rows now include a Context toggle that shows up to three nearby filtered events before and after the selected row.
 - Completed `issue-report-markdown-core`: ERROR and FATAL rows now include a Report toggle that renders a Markdown issue report with summary, diagnostic, nearby context, and raw snippet.
+- Completed `issue-report-copy-action`: Report panels now include a copy button that uses the Clipboard API and falls back to selecting report text when automatic copying is unavailable.

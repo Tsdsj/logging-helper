@@ -903,9 +903,15 @@ button.filter-chip:hover {
   background: rgba(168, 85, 247, 0.08);
 }
 
-.report-detail > span {
-  display: block;
+.report-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 6px;
+}
+
+.report-head span {
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 700;
@@ -924,6 +930,12 @@ button.filter-chip:hover {
   word-break: break-word;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12.5px;
+}
+
+.report-copy-status {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .line-content mark {

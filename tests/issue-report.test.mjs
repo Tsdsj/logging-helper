@@ -57,6 +57,8 @@ const expanded = renderPreviewRow(row, null, {
   contextRows,
 });
 assert.match(expanded, /report-detail/);
+assert.match(expanded, /data-action="copy-report"/);
+assert.match(expanded, /data-report-line-no="35"/);
 assert.match(expanded, /Log Issue Report/);
 assert.match(expanded, /APPLICATION FAILED TO START/);
 

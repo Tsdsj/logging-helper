@@ -429,6 +429,10 @@ function renderPreview() {
       if (btn.dataset.action === "toggle-report") {
         toggleExpandedSet(state.expandedReports, lineNo);
       }
+      if (btn.dataset.action === "copy-report") {
+        copyReport(Number(btn.dataset.reportLineNo));
+        return;
+      }
       renderPreview();
     });
   });
@@ -506,6 +510,35 @@ function clearSearchError() {
 function toggleExpandedSet(set, value) {
   if (set.has(value)) set.delete(value);
   else set.add(value);
+}
+
+async function copyReport(lineNo) {
+  const reportEl = previewBody.querySelector(`pre[data-report-line-no="${lineNo}"]`);
+  const status = previewBody.querySelector(`[data-report-status="${lineNo}"]`);
+  if (!reportEl || !status) return;
+  const text = reportEl.textContent;
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable");
+    await navigator.clipboard.writeText(text);
+    showReportStatus(status, "已复制报告。");
+  } catch (err) {
+    selectReportText(reportEl);
+    showReportStatus(status, "无法自动复制，已选中报告文本。");
+  }
+}
+
+function showReportStatus(el, message) {
+  el.textContent = message;
+  el.hidden = false;
+}
+
+function selectReportText(el) {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const selection = window.getSelection?.();
+  if (!selection) return;
+  selection.removeAllRanges();
+  selection.addRange(range);
 }
 
 function exportJson() {

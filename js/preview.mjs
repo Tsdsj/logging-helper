@@ -148,8 +148,12 @@ function renderReportDetail(row, opts) {
         <td></td>
         <td colspan="2">
           <div class="report-detail">
-            <span>Markdown report</span>
-            <pre>${escapeHtml(report)}</pre>
+            <div class="report-head">
+              <span>Markdown report</span>
+              <button class="ghost-btn small" type="button" data-action="copy-report" data-report-line-no="${row.lineNo}">复制</button>
+            </div>
+            <pre data-report-line-no="${row.lineNo}">${escapeHtml(report)}</pre>
+            <p class="report-copy-status" data-report-status="${row.lineNo}" hidden></p>
           </div>
         </td>
       </tr>`;

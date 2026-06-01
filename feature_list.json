@@ -62,7 +62,7 @@
       "Verify in the browser that copying a Spring Boot report keeps the preview row expanded."
     ],
     "budget_minutes": 8,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "trace-id-detection",
