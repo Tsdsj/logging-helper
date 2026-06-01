@@ -405,16 +405,34 @@ button:active {
 }
 
 .event-timeline li {
-  display: grid;
-  grid-template-columns: 132px 72px minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
   padding: 7px 0;
   border-bottom: 1px solid var(--border);
 }
 
 .event-timeline li:last-child {
   border-bottom: 0;
+}
+
+.event-timeline button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 132px 72px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 0;
+  border-radius: 8px;
+  padding: 5px 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.event-timeline button:hover,
+.event-timeline button:focus-visible,
+.event-timeline .is-focused button {
+  background: var(--primary-soft);
+  outline: none;
 }
 
 .timeline-time {
@@ -431,6 +449,12 @@ button:active {
 
 .timeline-omitted {
   margin: 10px 0 0;
+}
+
+.timeline-focus-message {
+  margin: 10px 0 0;
+  color: var(--lvl-warn);
+  font-size: 12px;
 }
 
 /* ---------- Level chips ---------- */
@@ -769,6 +793,10 @@ button.filter-chip:hover {
   width: 64px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+.preview-row-focused td {
+  background: var(--primary-soft);
 }
 
 .line-content {

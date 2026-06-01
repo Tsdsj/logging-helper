@@ -179,7 +179,7 @@
       "Verify in the browser that clearing filters reveals the focused timeline event."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "README-log-intelligence-docs",

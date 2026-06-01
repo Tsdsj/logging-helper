@@ -24,9 +24,14 @@ assert.match(timeline.items[2].message, /Web server failed to start/);
 
 const html = renderTimelineHtml(timeline);
 assert.match(html, /event-timeline/);
+assert.match(html, /data-action="focus-timeline"/);
+assert.match(html, /data-line-no="4"/);
 assert.match(html, /WARN/);
 assert.match(html, /APPLICATION FAILED TO START|Web server failed/);
 assert.match(html, /另有 2 条关键事件未显示/);
+const focusedHtml = renderTimelineHtml({ ...timeline, focusedLineNo: 4, hiddenFocusedLine: true });
+assert.match(focusedHtml, /is-focused/);
+assert.match(focusedHtml, /当前筛选条件隐藏了 #4/);
 assert.equal(renderTimelineHtml({ items: [], omittedCount: 0 }), "");
 
 console.log("Timeline regression passed");

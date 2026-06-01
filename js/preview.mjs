@@ -53,8 +53,9 @@ export function renderPreviewRow(row, matcher, opts = {}) {
     detailRows.push(renderReportDetail(row, opts));
   }
 
+  const focusedClass = opts.focused ? ' class="preview-row-focused"' : "";
   return `
-      <tr>
+      <tr data-preview-line-no="${key}"${focusedClass}>
         <td class="num">${row.lineNo}</td>
         <td class="lvl"><span class="badge badge-${row.level}">${row.level}</span>${dup}</td>
         <td class="line-content">${highlight(summary, matcher)}${severity}${identifierChips}${stack}${diagnosticButton}${contextButton}${reportButton}</td>

@@ -97,6 +97,8 @@ const state = {
   builtInDiagnosticRules: [],
   customDiagnosticRules: [],
   identifierFilter: null,
+  focusedLineNo: null,
+  hiddenFocusedLine: false,
 };
 
 init();
@@ -342,6 +344,8 @@ function resetFilters() {
   state.expandedContexts = new Set();
   state.expandedReports = new Set();
   state.identifierFilter = null;
+  state.focusedLineNo = null;
+  state.hiddenFocusedLine = false;
   searchInput.value = "";
   clearSearchError();
 }
@@ -360,9 +364,16 @@ function renderSeveritySummary(rows) {
 }
 
 function renderTimeline(rows) {
-  const html = renderTimelineHtml(selectTimelineEvents(rows));
+  const html = renderTimelineHtml({
+    ...selectTimelineEvents(rows),
+    focusedLineNo: state.focusedLineNo,
+    hiddenFocusedLine: state.hiddenFocusedLine,
+  });
   timelineCard.hidden = !html;
   eventTimelineEl.innerHTML = html;
+  eventTimelineEl.querySelectorAll("[data-action='focus-timeline']").forEach((btn) => {
+    btn.addEventListener("click", () => focusTimelineLine(Number(btn.dataset.lineNo)));
+  });
 }
 
 function renderLevelBreakdown() {
@@ -464,6 +475,12 @@ function renderPreview() {
       (!matcher || matcher.test(row.raw))
   );
   const shown = filtered.slice(0, PREVIEW_LIMIT);
+  state.hiddenFocusedLine = Boolean(
+    state.focusedLineNo && !shown.some((row) => row.lineNo === state.focusedLineNo)
+  );
+  if (state.focusedLineNo && !state.hiddenFocusedLine) {
+    state.expandedRows.add(state.focusedLineNo);
+  }
   previewBody.innerHTML = shown
     .map((row) =>
       renderPreviewRow(row, matcher, {
@@ -471,6 +488,7 @@ function renderPreview() {
         expandedDiagnostic: state.expandedDiagnostics.has(row.lineNo),
         expandedContext: state.expandedContexts.has(row.lineNo),
         expandedReport: state.expandedReports.has(row.lineNo),
+        focused: row.lineNo === state.focusedLineNo,
         contextRows: filtered,
         diagnosticRules: state.diagnosticRules,
       })
@@ -510,6 +528,8 @@ function renderPreview() {
 
   renderActiveFilters(filtered.length);
   renderPreviewMeta(shown.length, filtered.length);
+  renderTimeline(state.rows);
+  scrollFocusedPreviewRow();
 }
 
 function createMatcher() {
@@ -557,6 +577,17 @@ function renderPreviewMeta(shownCount, filteredCount) {
   if (filteredCount > PREVIEW_LIMIT) meta += `（仅预览前 ${PREVIEW_LIMIT} 条）`;
   if (state.result) meta += ` · 共 ${state.result.events} 条事件 / ${state.result.totalLines} 行`;
   previewMeta.textContent = meta;
+}
+
+function focusTimelineLine(lineNo) {
+  state.focusedLineNo = lineNo;
+  renderPreview();
+}
+
+function scrollFocusedPreviewRow() {
+  if (!state.focusedLineNo || state.hiddenFocusedLine) return;
+  const row = previewBody.querySelector(`[data-preview-line-no="${state.focusedLineNo}"]`);
+  row?.scrollIntoView({ block: "center", behavior: "smooth" });
 }
 
 function clearFilter(kind) {

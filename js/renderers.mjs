@@ -51,19 +51,27 @@ export function renderTimelineHtml(timeline) {
   return `
     <ol class="event-timeline">
       ${timeline.items
-        .map(
-          (item) => `
-          <li>
-            <span class="timeline-time">${escapeHtml(item.time)}</span>
-            <span class="badge badge-${escapeHtml(item.level)}">${escapeHtml(item.level)}</span>
-            <span class="timeline-message">${escapeHtml(item.message)}</span>
-          </li>`
-        )
+        .map((item) => {
+          const focused = item.lineNo === timeline.focusedLineNo ? " is-focused" : "";
+          return `
+          <li class="${focused.trim()}">
+            <button type="button" data-action="focus-timeline" data-line-no="${item.lineNo}">
+              <span class="timeline-time">${escapeHtml(item.time)}</span>
+              <span class="badge badge-${escapeHtml(item.level)}">${escapeHtml(item.level)}</span>
+              <span class="timeline-message">${escapeHtml(item.message)}</span>
+            </button>
+          </li>`;
+        })
         .join("")}
     </ol>
     ${
       timeline.omittedCount
         ? `<p class="muted small timeline-omitted">另有 ${timeline.omittedCount} 条关键事件未显示</p>`
+        : ""
+    }
+    ${
+      timeline.hiddenFocusedLine
+        ? `<p class="timeline-focus-message">当前筛选条件隐藏了 #${timeline.focusedLineNo}。清除筛选后可查看该事件。</p>`
         : ""
     }`;
 }
