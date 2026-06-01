@@ -1,0 +1,582 @@
+{
+  "rules": [
+    {
+      "id": "port-already-in-use",
+      "title": "端口被占用",
+      "tags": ["java", "spring-boot", "web-server"],
+      "match": {
+        "any": [
+          "\\bWeb server failed to start\\.\\s+Port\\s+\\d+\\s+was already in use\\.",
+          "\\bEADDRINUSE\\b",
+          "\\baddress already in use\\b",
+          "\\bAddress already in use: bind\\b"
+        ]
+      },
+      "variables": {
+        "port": "\\bPort\\s+(\\d+)\\s+was already in use\\b|:(\\d+)\\b"
+      },
+      "reason": "应用尝试监听的端口 {{port}} 已被其他进程占用，服务无法绑定到该地址。",
+      "details": [
+        "常见原因是上一次服务没有停止、IDE 重复启动同一个应用，或 Docker/本地中间件占用了同一端口。",
+        "在 Spring Boot、Node.js、Go、Python Web 服务中都可能出现类似端口绑定失败。"
+      ],
+      "solutions": [
+        "Windows: `netstat -ano | findstr :{{port}}` 找到 PID，再执行 `taskkill /PID <PID> /F`。",
+        "Linux/macOS: `lsof -i :{{port}}` 或 `ss -ltnp | grep {{port}}` 找到进程，再停止它。",
+        "修改应用端口，例如 Spring Boot 的 `server.port`、Node/FastAPI/Django 的启动端口参数。"
+      ]
+    },
+    {
+      "id": "spring-no-such-bean",
+      "title": "Spring Bean 未找到",
+      "tags": ["java", "spring", "dependency-injection"],
+      "match": {
+        "any": [
+          "NoSuchBeanDefinitionException",
+          "No qualifying bean of type",
+          "required a bean of type .* that could not be found"
+        ]
+      },
+      "variables": {
+        "bean": "type '([^']+)'|bean of type '([^']+)'"
+      },
+      "reason": "Spring 容器中没有找到需要注入的 Bean {{bean}}，依赖装配失败。",
+      "details": [
+        "可能是类没有加 `@Component`/`@Service`/`@Repository`，或包路径不在组件扫描范围内。",
+        "也可能是存在多个 profile/conditional 配置，当前环境没有创建该 Bean。"
+      ],
+      "solutions": [
+        "确认目标类是否被 Spring 管理，并检查启动类的 `@SpringBootApplication(scanBasePackages=...)`。",
+        "检查 `@Profile`、`@ConditionalOn...`、配置类导入以及测试环境的 mock Bean。",
+        "如果存在多个实现，配合 `@Qualifier` 或 `@Primary` 明确注入目标。"
+      ]
+    },
+    {
+      "id": "spring-bean-creation",
+      "title": "Spring Bean 创建失败",
+      "tags": ["java", "spring"],
+      "match": {
+        "any": ["BeanCreationException", "Error creating bean with name"]
+      },
+      "variables": {
+        "bean": "bean with name '([^']+)'"
+      },
+      "reason": "Spring 创建 Bean {{bean}} 时失败，通常是构造函数、初始化方法或依赖链中抛出了异常。",
+      "details": [
+        "真正原因通常在 `Caused by` 的最底层，而不是第一行 BeanCreationException。",
+        "常见触发点包括配置缺失、数据库连接失败、属性绑定失败、循环依赖。"
+      ],
+      "solutions": [
+        "从堆栈底部向上查找第一个业务异常或配置异常。",
+        "确认构造函数和 `@PostConstruct` 中没有依赖外部资源的脆弱逻辑。",
+        "检查配置项、profile、环境变量和依赖 Bean 是否存在。"
+      ]
+    },
+    {
+      "id": "spring-unsatisfied-dependency",
+      "title": "Spring 依赖注入失败",
+      "tags": ["java", "spring"],
+      "match": {
+        "any": ["UnsatisfiedDependencyException", "Unsatisfied dependency expressed through"]
+      },
+      "variables": {
+        "bean": "bean with name '([^']+)'"
+      },
+      "reason": "Bean {{bean}} 的某个依赖无法注入，导致应用上下文启动失败。",
+      "details": [
+        "通常是依赖 Bean 未创建、类型冲突、构造器参数缺失，或配置条件未满足。",
+        "需要继续查看后续 `Caused by` 才能确定具体缺失项。"
+      ],
+      "solutions": [
+        "沿着 `Caused by` 找到最底层异常，优先修复最底层原因。",
+        "检查被注入类型是否有实现类、是否在扫描路径中、是否被当前 profile 启用。",
+        "如存在多个候选 Bean，使用 `@Qualifier` 或 `@Primary` 消除歧义。"
+      ]
+    },
+    {
+      "id": "java-class-not-found",
+      "title": "Java 类缺失",
+      "tags": ["java", "classpath"],
+      "match": {
+        "any": ["ClassNotFoundException", "NoClassDefFoundError"]
+      },
+      "variables": {
+        "className": "(?:ClassNotFoundException|NoClassDefFoundError):\\s*([\\w.$/]+)"
+      },
+      "reason": "运行时找不到类 {{className}}，通常是依赖没有打包、版本冲突或 classpath 不完整。",
+      "details": [
+        "`ClassNotFoundException` 多发生在反射加载时，`NoClassDefFoundError` 多发生在编译存在但运行缺失时。",
+        "升级依赖后包名迁移也会触发该问题，例如 javax/jakarta 命名空间变化。"
+      ],
+      "solutions": [
+        "检查 Maven/Gradle 依赖树，确认包含提供该类的 jar。",
+        "确认打包方式没有把运行时依赖标成 `provided` 或排除掉。",
+        "排查依赖版本冲突，必要时锁定版本或排除错误传递依赖。"
+      ]
+    },
+    {
+      "id": "java-null-pointer",
+      "title": "Java 空指针",
+      "tags": ["java"],
+      "match": {
+        "any": ["NullPointerException"]
+      },
+      "variables": {},
+      "reason": "代码访问了 null 对象的方法或字段。",
+      "details": [
+        "常见于对象未初始化、查询结果为空、配置项为空或依赖注入失败后继续使用。",
+        "Java 14+ 的详细 NPE 信息通常会指出具体哪个变量为 null。"
+      ],
+      "solutions": [
+        "定位堆栈中第一行业务代码，检查该行访问的对象来源。",
+        "对外部输入、数据库查询、缓存读取结果增加空值分支。",
+        "必要时用 `Objects.requireNonNull` 或断言在更早位置暴露错误。"
+      ]
+    },
+    {
+      "id": "java-out-of-memory",
+      "title": "JVM 内存溢出",
+      "tags": ["java", "jvm"],
+      "match": {
+        "any": ["OutOfMemoryError", "Java heap space", "GC overhead limit exceeded", "Metaspace"]
+      },
+      "variables": {},
+      "reason": "JVM 可用内存不足，可能是堆、元空间、直接内存或线程数量达到上限。",
+      "details": [
+        "短期可以调大内存参数，但长期需要确认是否存在内存泄漏或大对象积压。",
+        "`Java heap space`、`Metaspace`、`Direct buffer memory` 指向不同内存区域。"
+      ],
+      "solutions": [
+        "保留 heap dump：`-XX:+HeapDumpOnOutOfMemoryError`，用 MAT/VisualVM 分析。",
+        "检查缓存、批量查询、文件读取、消息堆积等大对象来源。",
+        "按问题区域调整 `-Xmx`、`-XX:MaxMetaspaceSize` 或直接内存限制。"
+      ]
+    },
+    {
+      "id": "database-access-denied",
+      "title": "数据库账号无权限或密码错误",
+      "tags": ["database", "mysql", "postgres"],
+      "match": {
+        "any": ["Access denied for user", "password authentication failed for user", "permission denied for database"]
+      },
+      "variables": {
+        "user": "user '([^']+)'|user \"([^\"]+)\""
+      },
+      "reason": "数据库拒绝用户 {{user}} 登录或访问，通常是账号、密码、主机授权或数据库权限不匹配。",
+      "details": [
+        "MySQL 会区分 `'user'@'host'`，同名用户从不同主机连接可能权限不同。",
+        "PostgreSQL 还需要检查 `pg_hba.conf`、认证方式和目标数据库权限。"
+      ],
+      "solutions": [
+        "确认应用配置中的用户名、密码、数据库名和连接地址是否对应当前环境。",
+        "用数据库客户端在同一台机器上手工连接，验证是否为账号权限问题。",
+        "检查 MySQL grant、PostgreSQL role/database privileges 和网络白名单。"
+      ]
+    },
+    {
+      "id": "database-connection-refused",
+      "title": "数据库连接被拒绝",
+      "tags": ["database", "network"],
+      "match": {
+        "any": ["Connection refused", "ECONNREFUSED", "could not connect to server", "Communications link failure"]
+      },
+      "variables": {},
+      "reason": "应用无法连接目标服务，目标端口没有服务监听、网络不通或服务拒绝连接。",
+      "details": [
+        "如果发生在数据库、Redis、Elasticsearch 等中间件上，通常先排查服务是否启动和地址端口是否正确。",
+        "容器环境中 localhost 常指向容器自身，不一定是宿主机或其他容器。"
+      ],
+      "solutions": [
+        "确认服务已启动并监听目标端口：`telnet host port`、`nc -vz host port` 或 `Test-NetConnection`。",
+        "检查应用配置的 host/port，尤其是 Docker Compose 服务名和 localhost 使用场景。",
+        "检查防火墙、安全组、容器网络和中间件绑定地址。"
+      ]
+    },
+    {
+      "id": "sql-syntax-error",
+      "title": "SQL 语法错误",
+      "tags": ["database", "sql"],
+      "match": {
+        "any": ["SQLSyntaxErrorException", "syntax error at or near", "You have an error in your SQL syntax"]
+      },
+      "variables": {},
+      "reason": "数据库无法解析当前 SQL，可能是语法、方言、关键字或动态 SQL 拼接错误。",
+      "details": [
+        "MySQL、PostgreSQL、Oracle 等数据库方言不同，分页、引号、函数写法可能不兼容。",
+        "动态 SQL 缺少空格、条件为空、字段名是保留字也很常见。"
+      ],
+      "solutions": [
+        "把日志中的完整 SQL 和参数复制到数据库客户端直接执行复现。",
+        "检查 ORM 生成 SQL 的方言配置和数据库版本是否一致。",
+        "对动态 SQL 分支增加空条件测试，避免拼接出非法语句。"
+      ]
+    },
+    {
+      "id": "redis-connection-failure",
+      "title": "Redis 连接失败",
+      "tags": ["redis", "cache"],
+      "match": {
+        "any": ["RedisConnectionFailureException", "Unable to connect to Redis", "NOAUTH Authentication required", "WRONGPASS invalid username-password pair"]
+      },
+      "variables": {},
+      "reason": "应用无法连接或认证 Redis，可能是地址端口、密码、ACL 用户或网络配置错误。",
+      "details": [
+        "Redis 6+ 可能启用了 ACL 用户名，只有密码不一定足够。",
+        "容器和云 Redis 常需要确认内网地址、TLS、白名单和安全组。"
+      ],
+      "solutions": [
+        "使用 `redis-cli -h <host> -p <port> -a <password>` 从应用同网络环境验证连接。",
+        "检查 Redis 密码、ACL 用户、TLS 配置和数据库编号。",
+        "确认 Redis 服务监听地址、容器网络、云服务白名单和安全组。"
+      ]
+    },
+    {
+      "id": "python-module-not-found",
+      "title": "Python 模块缺失",
+      "tags": ["python"],
+      "match": {
+        "any": ["ModuleNotFoundError: No module named", "ImportError: No module named"]
+      },
+      "variables": {
+        "module": "No module named '([^']+)'"
+      },
+      "reason": "Python 模块 {{module}} 未安装在当前解释器环境中，或运行时使用了错误的虚拟环境。",
+      "details": [
+        "最常见原因是 IDE、命令行、服务进程使用的 Python 解释器不同。",
+        "容器镜像中也可能忘记安装 requirements，或安装到了构建层之外。"
+      ],
+      "solutions": [
+        "确认 `python -m pip show {{module}}` 使用的是运行应用的同一个 Python。",
+        "安装依赖：`python -m pip install {{module}}`，或补充到 `requirements.txt`/`pyproject.toml`。",
+        "检查虚拟环境激活、IDE interpreter、Dockerfile 和部署脚本。"
+      ]
+    },
+    {
+      "id": "python-indentation-error",
+      "title": "Python 缩进错误",
+      "tags": ["python"],
+      "match": {
+        "any": ["IndentationError", "TabError"]
+      },
+      "variables": {},
+      "reason": "Python 源码缩进不合法，或混用了 tab 和空格。",
+      "details": [
+        "Python 用缩进表达代码块，缩进层级不一致会导致解释器无法解析。",
+        "复制代码、编辑器格式化配置不一致时容易出现该问题。"
+      ],
+      "solutions": [
+        "打开报错文件和行号，统一使用 4 个空格缩进。",
+        "启用编辑器的显示空白字符和自动转换 tab 为空格。",
+        "运行 `python -m py_compile <file>` 快速检查语法。"
+      ]
+    },
+    {
+      "id": "python-django-migration-missing",
+      "title": "Django 数据库迁移未应用",
+      "tags": ["python", "django"],
+      "match": {
+        "any": ["no such table", "relation .* does not exist", "django.db.utils.ProgrammingError"]
+      },
+      "variables": {},
+      "reason": "Django 访问的表或字段不存在，常见于迁移文件未生成或未执行。",
+      "details": [
+        "本地、测试、生产数据库迁移状态不一致时很容易出现。",
+        "如果是字段不存在，也可能是代码已发布但迁移未同步执行。"
+      ],
+      "solutions": [
+        "执行 `python manage.py showmigrations` 查看迁移状态。",
+        "生成并应用迁移：`python manage.py makemigrations`、`python manage.py migrate`。",
+        "确认应用连接的是预期数据库，不是旧库或空库。"
+      ]
+    },
+    {
+      "id": "node-module-not-found",
+      "title": "Node.js 模块缺失",
+      "tags": ["node", "javascript"],
+      "match": {
+        "any": ["Cannot find module", "ERR_MODULE_NOT_FOUND"]
+      },
+      "variables": {
+        "module": "Cannot find module '([^']+)'|Cannot find package '([^']+)'"
+      },
+      "reason": "Node.js 模块 {{module}} 不在当前项目依赖或运行路径中。",
+      "details": [
+        "常见原因是未执行安装、依赖在 devDependencies 中但生产环境未安装，或 ESM/CJS 引用路径不正确。",
+        "monorepo 中还可能是工作区依赖没有正确链接。"
+      ],
+      "solutions": [
+        "执行 `npm install` / `pnpm install` / `yarn install` 安装依赖。",
+        "确认包在 `dependencies` 中，而不是只存在于生产环境会跳过的 `devDependencies`。",
+        "检查 import/require 路径、文件扩展名和 package exports 配置。"
+      ]
+    },
+    {
+      "id": "node-unhandled-rejection",
+      "title": "Node.js Promise 未处理异常",
+      "tags": ["node", "javascript"],
+      "match": {
+        "any": ["UnhandledPromiseRejection", "ERR_UNHANDLED_REJECTION", "unhandledRejection"]
+      },
+      "variables": {},
+      "reason": "Promise 异步任务抛错后没有被 catch 或 await 外层捕获。",
+      "details": [
+        "这类错误可能让请求静默失败，或在较新 Node 版本中直接终止进程。",
+        "常见于漏写 `await`、异步回调里 throw、批量 Promise 没有统一处理错误。"
+      ],
+      "solutions": [
+        "给异步调用补上 `await` 和 `try/catch`，或在 Promise 链尾部添加 `.catch()`。",
+        "Express/Koa 路由中使用统一 async error wrapper。",
+        "增加 `process.on('unhandledRejection')` 记录日志，但不要只靠它吞掉错误。"
+      ]
+    },
+    {
+      "id": "node-heap-out-of-memory",
+      "title": "Node.js 堆内存不足",
+      "tags": ["node", "javascript"],
+      "match": {
+        "any": ["JavaScript heap out of memory", "Allocation failed - JavaScript heap"]
+      },
+      "variables": {},
+      "reason": "Node.js V8 堆内存耗尽，通常是大对象、缓存、构建任务或内存泄漏造成。",
+      "details": [
+        "前端构建、SSR、批量导入数据和无限增长缓存都可能触发。",
+        "只调大内存可以缓解，但需要确认是否有泄漏。"
+      ],
+      "solutions": [
+        "临时增加内存：`NODE_OPTIONS=--max-old-space-size=4096`。",
+        "检查大数组、全局缓存、流式处理缺失和构建 sourcemap 配置。",
+        "用 heap snapshot 或 clinic.js 分析对象增长。"
+      ]
+    },
+    {
+      "id": "go-nil-pointer",
+      "title": "Go nil 指针",
+      "tags": ["go"],
+      "match": {
+        "any": ["panic: runtime error: invalid memory address or nil pointer dereference"]
+      },
+      "variables": {},
+      "reason": "Go 程序访问了 nil 指针，通常是结构体指针、接口值或依赖对象未初始化。",
+      "details": [
+        "堆栈中 panic 后第一段业务函数通常就是触发位置。",
+        "接口值内部持有 nil 指针时，表面上 `interface != nil` 也可能继续 panic。"
+      ],
+      "solutions": [
+        "查看 panic 堆栈中第一行业务代码，检查接收者和字段是否为 nil。",
+        "构造对象时集中初始化依赖，并在入口处做 nil guard。",
+        "为可能返回 nil 的函数补充错误返回和调用方判断。"
+      ]
+    },
+    {
+      "id": "go-data-race",
+      "title": "Go 数据竞争",
+      "tags": ["go", "concurrency"],
+      "match": {
+        "any": ["WARNING: DATA RACE", "fatal error: concurrent map writes"]
+      },
+      "variables": {},
+      "reason": "多个 goroutine 并发读写共享数据，缺少同步保护。",
+      "details": [
+        "map 并发写会直接 panic，其他共享变量可能导致偶发错误。",
+        "竞态通常无法靠重试稳定复现，需要使用 race detector。"
+      ],
+      "solutions": [
+        "使用 `go test -race ./...` 或带 race 的二进制复现。",
+        "用 mutex、channel、sync.Map 或不可变数据消除共享写。",
+        "避免把同一个 buffer/map/slice 在多个 goroutine 中无保护复用。"
+      ]
+    },
+    {
+      "id": "dotnet-null-reference",
+      "title": ".NET 空引用",
+      "tags": ["dotnet", "csharp"],
+      "match": {
+        "any": ["NullReferenceException"]
+      },
+      "variables": {},
+      "reason": ".NET 代码访问了 null 对象的成员。",
+      "details": [
+        "常见于依赖注入未注册、配置绑定为空、数据库查询返回 null。",
+        "开启 nullable reference types 可以在编译期提前发现一部分问题。"
+      ],
+      "solutions": [
+        "定位堆栈中第一行项目代码，检查该对象如何赋值。",
+        "检查 DI 注册、配置绑定和外部输入校验。",
+        "开启 nullable 分析，并为可空返回值增加分支处理。"
+      ]
+    },
+    {
+      "id": "dotnet-di-missing",
+      "title": ".NET 依赖注入未注册",
+      "tags": ["dotnet", "aspnetcore"],
+      "match": {
+        "any": ["Unable to resolve service for type", "No service for type .* has been registered"]
+      },
+      "variables": {
+        "service": "type '([^']+)'|type \"([^\"]+)\""
+      },
+      "reason": "ASP.NET Core DI 容器无法解析服务 {{service}}，通常是没有注册实现或生命周期配置不当。",
+      "details": [
+        "构造函数注入的任一参数未注册都会导致控制器或服务创建失败。",
+        "Scoped 服务注入 Singleton 也可能导致生命周期错误。"
+      ],
+      "solutions": [
+        "在 `Program.cs`/`Startup.cs` 中补充 `AddScoped`/`AddSingleton`/`AddTransient` 注册。",
+        "确认接口和实现类型匹配，程序集已被加载。",
+        "检查 Singleton 中是否错误依赖 Scoped 服务。"
+      ]
+    },
+    {
+      "id": "php-class-not-found",
+      "title": "PHP 类未找到",
+      "tags": ["php", "composer"],
+      "match": {
+        "any": ["Class .* not found", "Interface .* not found", "Trait .* not found"]
+      },
+      "variables": {},
+      "reason": "PHP 自动加载无法找到目标类、接口或 trait。",
+      "details": [
+        "常见原因是 Composer 依赖未安装、命名空间不匹配或 autoload 缓存未刷新。",
+        "Linux 部署环境区分文件名大小写，本地 Windows/macOS 可能不暴露该问题。"
+      ],
+      "solutions": [
+        "执行 `composer install` 和 `composer dump-autoload`。",
+        "检查 namespace、类名和文件路径大小写是否一致。",
+        "确认生产环境包含 vendor 目录或正确执行了依赖安装。"
+      ]
+    },
+    {
+      "id": "laravel-migration-missing",
+      "title": "Laravel 表或字段缺失",
+      "tags": ["php", "laravel", "database"],
+      "match": {
+        "any": ["Base table or view not found", "Unknown column", "SQLSTATE\\[42S02\\]", "SQLSTATE\\[42S22\\]"]
+      },
+      "variables": {},
+      "reason": "Laravel 访问的数据库表或字段不存在，通常是迁移未执行或代码与数据库版本不一致。",
+      "details": [
+        "部署时忘记执行 migration，或连接到了错误数据库，是最常见原因。",
+        "字段重命名/删除后旧代码或队列任务仍在运行也会触发。"
+      ],
+      "solutions": [
+        "执行 `php artisan migrate:status` 查看迁移状态。",
+        "在正确环境运行 `php artisan migrate`，并确认 `.env` 指向目标数据库。",
+        "清理配置缓存：`php artisan config:clear`，避免使用旧连接配置。"
+      ]
+    },
+    {
+      "id": "ruby-bundler-missing-gem",
+      "title": "Ruby Gem 缺失",
+      "tags": ["ruby", "rails"],
+      "match": {
+        "any": ["Could not find gem", "LoadError: cannot load such file", "Bundler::GemNotFound"]
+      },
+      "variables": {},
+      "reason": "Ruby 运行环境缺少 Gem，或 Bundler 使用的 Gemfile.lock 与当前环境不一致。",
+      "details": [
+        "常见于未执行 bundle install、Ruby 版本不同、部署环境没有安装 native extension。",
+        "Rails 项目还可能是 Spring/缓存进程仍使用旧依赖。"
+      ],
+      "solutions": [
+        "执行 `bundle install`，确认 Ruby 版本与 `.ruby-version` 一致。",
+        "检查 Gemfile/Gemfile.lock 是否已提交并与部署环境同步。",
+        "如果是 native extension，确认系统依赖和编译工具链已安装。"
+      ]
+    },
+    {
+      "id": "http-404-route-not-found",
+      "title": "HTTP 路由不存在",
+      "tags": ["web", "http"],
+      "match": {
+        "any": ["\\b404\\b", "NotFoundHttpException", "Cannot GET /", "No route matches"]
+      },
+      "variables": {},
+      "reason": "请求路径没有匹配到后端路由，或反向代理转发到了错误服务。",
+      "details": [
+        "前后端 base path、网关 rewrite、部署上下文路径不一致都可能导致 404。",
+        "SPA 刷新 404 也可能是静态服务器没有 fallback 到 index.html。"
+      ],
+      "solutions": [
+        "确认请求 URL、HTTP 方法和后端路由定义一致。",
+        "检查 Nginx/网关 rewrite、服务 context-path 和前端 base URL。",
+        "SPA 部署时为 history 路由配置 fallback。"
+      ]
+    },
+    {
+      "id": "http-500-server-error",
+      "title": "HTTP 500 服务端错误",
+      "tags": ["web", "http"],
+      "match": {
+        "any": ["\\b500\\b", "Internal Server Error"]
+      },
+      "variables": {},
+      "reason": "服务端处理请求时抛出未处理异常，需要结合同一请求链路的后端堆栈定位。",
+      "details": [
+        "500 是结果码，不是根因；根因通常在同一时间附近的 ERROR 堆栈或 traceId 对应日志中。",
+        "如果只有网关 500，需要继续查看上游服务日志。"
+      ],
+      "solutions": [
+        "用 traceId/requestId 在应用日志中搜索同一请求的完整异常。",
+        "查看 500 前后的数据库、缓存、远程调用错误。",
+        "为关键入口增加统一异常日志，确保输出异常类型、消息和 traceId。"
+      ]
+    },
+    {
+      "id": "kubernetes-crashloop",
+      "title": "Kubernetes CrashLoopBackOff",
+      "tags": ["kubernetes", "container"],
+      "match": {
+        "any": ["CrashLoopBackOff", "Back-off restarting failed container"]
+      },
+      "variables": {},
+      "reason": "容器启动后反复退出，Kubernetes 正在退避重启。",
+      "details": [
+        "CrashLoopBackOff 是现象，根因可能是应用启动异常、配置缺失、探针失败或资源不足。",
+        "需要查看上一次容器日志，而不是只看当前空日志。"
+      ],
+      "solutions": [
+        "执行 `kubectl logs <pod> -c <container> --previous` 查看上一次退出日志。",
+        "检查环境变量、ConfigMap/Secret 挂载、启动命令和工作目录。",
+        "查看 `kubectl describe pod` 中的事件、退出码、探针失败和 OOMKilled 信息。"
+      ]
+    },
+    {
+      "id": "docker-image-pull",
+      "title": "Docker/Kubernetes 镜像拉取失败",
+      "tags": ["docker", "kubernetes"],
+      "match": {
+        "any": ["ImagePullBackOff", "ErrImagePull", "pull access denied", "manifest unknown"]
+      },
+      "variables": {},
+      "reason": "容器运行时无法拉取镜像，可能是镜像名/tag 错误、仓库权限不足或网络不可达。",
+      "details": [
+        "`manifest unknown` 多表示 tag 不存在，`pull access denied` 多表示认证或仓库权限问题。",
+        "私有仓库需要正确配置 imagePullSecret。"
+      ],
+      "solutions": [
+        "确认镜像名、仓库地址和 tag 是否存在。",
+        "手工执行 `docker pull <image>` 验证网络和权限。",
+        "Kubernetes 中检查 `imagePullSecrets`、命名空间和私有仓库凭据。"
+      ]
+    },
+    {
+      "id": "nginx-upstream-refused",
+      "title": "Nginx 上游连接失败",
+      "tags": ["nginx", "reverse-proxy"],
+      "match": {
+        "any": ["connect\\(\\) failed .* while connecting to upstream", "upstream prematurely closed connection", "no live upstreams"]
+      },
+      "variables": {},
+      "reason": "Nginx 无法连接或稳定读取上游服务，通常是上游未启动、端口错误、超时或连接被重置。",
+      "details": [
+        "如果是容器部署，要确认 upstream 主机名在 Nginx 容器内可解析。",
+        "长请求或大响应可能需要调整 proxy timeout/body size。"
+      ],
+      "solutions": [
+        "在 Nginx 所在环境中 curl upstream 地址验证连通性。",
+        "检查 upstream 配置、服务端口、健康状态和容器网络。",
+        "按需调整 `proxy_connect_timeout`、`proxy_read_timeout` 和负载均衡健康检查。"
+      ]
+    }
+  ]
+}
