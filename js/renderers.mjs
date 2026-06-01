@@ -182,46 +182,78 @@ export function renderSparkline(values, { width = 84, height = 22 } = {}) {
 export function renderTrendChart(trend, selectedKey) {
   if (!trend.length) return '<p class="muted">未检测到错误趋势数据</p>';
   const W = 1000;
-  const H = 220;
-  const padL = 14;
-  const padR = 14;
-  const padT = 24;
-  const padB = 66;
+  const H = 240;
+  const padL = 46;
+  const padR = 18;
+  const padT = 18;
+  const padB = 52;
   const plotH = H - padT - padB;
+  const plotW = W - padL - padR;
+  const baseY = H - padB;
   const n = trend.length;
-  const slot = (W - padL - padR) / n;
-  const barW = Math.min(slot * 0.62, 46);
+  const slot = plotW / n;
+  const barW = Math.max(Math.min(slot * 0.5, 40), 6);
   const maxCount = Math.max(...trend.map(([, count]) => count), 1);
-  const labelStep = Math.ceil(n / 18);
-  const showValues = n <= 28;
+
+  // "Nice" Y scale with evenly spaced gridlines & integer ticks.
+  const niceStep = (max) => {
+    const raw = max / 4;
+    const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    const f = raw / pow;
+    const nf = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+    return Math.max(1, nf * pow);
+  };
+  const step = niceStep(maxCount);
+  const niceMax = Math.ceil(maxCount / step) * step;
+  const ticks = [];
+  for (let v = 0; v <= niceMax + 1e-9; v += step) ticks.push(v);
+
+  const gridlines = ticks
+    .map((v) => {
+      const y = round(baseY - (v / niceMax) * plotH);
+      return `<g class="trend-grid-row">
+        <line class="trend-grid" x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}"></line>
+        <text class="trend-tick-text" x="${padL - 8}" y="${y + 4}" text-anchor="end">${v}</text>
+      </g>`;
+    })
+    .join("");
+
+  const horizontal = slot >= 64;
+  const labelStep = horizontal ? 1 : Math.ceil(n / 16);
+  const showValues = n <= 16;
 
   const bars = trend
     .map(([label, count], i) => {
       const cx = padL + (i + 0.5) * slot;
-      const h = count > 0 ? Math.max((count / maxCount) * plotH, 3) : 0;
+      const h = count > 0 ? Math.max((count / niceMax) * plotH, 2) : 0;
       const x = cx - barW / 2;
-      const y = H - padB - h;
+      const y = baseY - h;
       const selected = label === selectedKey ? " is-selected" : "";
-      const valueText = showValues
-        ? `<text class="bar-value-text" x="${round(cx)}" y="${round(y - 6)}" text-anchor="middle">${count}</text>`
-        : "";
+      const valueText =
+        showValues && count > 0
+          ? `<text class="bar-value-text" x="${round(cx)}" y="${round(y - 7)}" text-anchor="middle">${count}</text>`
+          : "";
       const labelText =
         i % labelStep === 0
-          ? `<text class="bar-label-text" x="${round(cx)}" y="${round(
-              H - padB + 12
-            )}" text-anchor="end" transform="rotate(-45 ${round(cx)} ${round(
-              H - padB + 12
-            )})">${escapeHtml(compactLabel(label))}</text>`
+          ? horizontal
+            ? `<text class="bar-label-text" x="${round(cx)}" y="${round(
+                baseY + 20
+              )}" text-anchor="middle">${escapeHtml(compactLabel(label))}</text>`
+            : `<text class="bar-label-text" x="${round(cx)}" y="${round(
+                baseY + 14
+              )}" text-anchor="end" transform="rotate(-40 ${round(cx)} ${round(
+                baseY + 14
+              )})">${escapeHtml(compactLabel(label))}</text>`
           : "";
       return `
         <g class="bar-col clickable${selected}" role="button" tabindex="0"
            data-key="${escapeHtml(label)}">
           <title>${escapeHtml(label)} · ${count} 次</title>
-          <rect class="bar-col-hit" x="${round(x - (slot - barW) / 2)}" y="${padT}"
-                width="${round(slot)}" height="${plotH + 8}" fill="transparent"></rect>
+          <rect class="bar-col-hit" x="${round(cx - slot / 2)}" y="${padT}"
+                width="${round(slot)}" height="${round(baseY + 16 - padT)}" fill="transparent"></rect>
           <rect class="bar-col-rect" x="${round(x)}" y="${round(y)}" width="${round(
             barW
-          )}" height="${round(h)}" rx="4"></rect>
+          )}" height="${round(h)}" rx="5"></rect>
           ${valueText}
           ${labelText}
         </g>`;
@@ -229,7 +261,8 @@ export function renderTrendChart(trend, selectedKey) {
     .join("");
 
   return `<svg class="trend-svg" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="错误趋势柱状图">
-      <line class="trend-axis" x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}"></line>
+      ${gridlines}
+      <line class="trend-axis" x1="${padL}" y1="${baseY}" x2="${W - padR}" y2="${baseY}"></line>
       ${bars}
     </svg>`;
 }

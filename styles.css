@@ -593,6 +593,19 @@ th {
   stroke-width: 1;
 }
 
+.trend-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0.55;
+}
+
+.trend-tick-text {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
 .bar-col {
   cursor: pointer;
   outline: none;
@@ -600,7 +613,7 @@ th {
 
 .bar-col-rect {
   fill: var(--primary);
-  transition: fill 0.15s ease, opacity 0.15s ease;
+  transition: fill 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .bar-col:hover .bar-col-rect {
@@ -618,12 +631,17 @@ th {
 
 .bar-value-text {
   fill: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar-col:hover .bar-value-text {
+  fill: var(--text);
 }
 
 .bar-label-text {
   fill: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .bar-col.is-selected .bar-value-text,
