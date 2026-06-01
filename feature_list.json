@@ -153,7 +153,7 @@
       "Verify in the browser that loading the sample log updates severity counts without changing total line metrics."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "event-timeline-baseline",

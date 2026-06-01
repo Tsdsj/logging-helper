@@ -23,6 +23,29 @@ export function renderLevelBreakdownHtml(result) {
   return chips || '<p class="muted">未检测到日志级别</p>';
 }
 
+export function renderSeveritySummaryHtml(counts) {
+  if (!counts?.total) return "";
+  const items = [
+    ["critical", "Critical", counts.critical],
+    ["high", "High", counts.high],
+    ["medium", "Medium", counts.medium],
+    ["low", "Low", counts.low],
+  ];
+  return `
+    <div class="severity-summary">
+      ${items
+        .filter(([, , count]) => count)
+        .map(
+          ([key, label, count]) => `
+          <div class="severity-summary-item severity-${key}">
+            <span>${escapeHtml(label)}</span>
+            <strong>${count}</strong>
+          </div>`
+        )
+        .join("")}
+    </div>`;
+}
+
 export function levelColor(lvl) {
   const map = {
     TRACE: "var(--lvl-trace)",

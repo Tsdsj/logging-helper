@@ -4,7 +4,7 @@
 - Log intelligence planning queue initialized with `$Task_init`.
 
 ## First Pending Task
-- `severity-summary-card`
+- `event-timeline-baseline`
 
 ## Recommended Next Reads
 - `AGENTS.md`
@@ -30,3 +30,4 @@
 - Completed `custom-diagnostics-import`: users can import a local custom diagnostics JSON file for the current browser session, invalid JSON/rules show a clear error, and valid custom rules are appended after the built-in knowledge base.
 - Completed `custom-diagnostics-export-template`: the custom diagnostics toolbar now downloads a `diagnostics-custom-template.json` file generated from a pure template helper, and the generated template validates with the existing diagnostics loader.
 - Completed `severity-labels-core`: ERROR/FATAL preview rows now show Critical/High/Medium/Low severity labels from a reusable helper covering startup failures, out-of-memory, database connectivity, fatal events, and generic errors.
+- Completed `severity-summary-card`: analysis now computes severity counts from parsed rows and renders a compact severity overview above the level distribution, hidden automatically when there are no ERROR/FATAL events.

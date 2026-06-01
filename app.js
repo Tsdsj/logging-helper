@@ -1,6 +1,7 @@
 import { LEVELS, parseLines, summarize } from "./js/parser.mjs";
 import { buildCustomDiagnosticsTemplateDownload } from "./js/custom-diagnostics.mjs";
 import { loadDiagnosticRules } from "./js/diagnostics.mjs";
+import { countSeverities } from "./js/severity.mjs";
 import { buildSearchMatcher, renderPreviewRow } from "./js/preview.mjs";
 import {
   renderActiveFilterHtml,
@@ -8,6 +9,7 @@ import {
   renderLevelBreakdownHtml,
   renderLevelFilterHtml,
   renderPatternRows,
+  renderSeveritySummaryHtml,
   renderTrendRows,
 } from "./js/renderers.mjs";
 import { escapeHtml, formatBytes } from "./js/utils.mjs";
@@ -30,6 +32,8 @@ const totalLinesEl = document.getElementById("totalLines");
 const errorLinesEl = document.getElementById("errorLines");
 const errorRateEl = document.getElementById("errorRate");
 const fileCountEl = document.getElementById("fileCount");
+const severitySummaryCard = document.getElementById("severitySummaryCard");
+const severitySummaryEl = document.getElementById("severitySummary");
 const levelBreakdownEl = document.getElementById("levelBreakdown");
 const freqTableBody = document.getElementById("freqTableBody");
 const trendChart = document.getElementById("trendChart");
@@ -306,6 +310,7 @@ function runAnalysis(text, fileCount, label) {
   emptyState.hidden = true;
   resultsEl.hidden = false;
   renderMetrics(state.result);
+  renderSeveritySummary(rows);
   renderLevelBreakdown();
   renderFrequency();
   renderTrend();
@@ -341,6 +346,12 @@ function renderMetrics(result) {
   errorLinesEl.textContent = String(result.errorLines);
   errorRateEl.textContent = `${result.errorRate.toFixed(2)}%`;
   fileCountEl.textContent = String(result.fileCount);
+}
+
+function renderSeveritySummary(rows) {
+  const html = renderSeveritySummaryHtml(countSeverities(rows));
+  severitySummaryCard.hidden = !html;
+  severitySummaryEl.innerHTML = html;
 }
 
 function renderLevelBreakdown() {

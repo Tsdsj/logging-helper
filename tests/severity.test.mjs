@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 
-import { getSeverity } from "../js/severity.mjs";
+import { countSeverities, getSeverity } from "../js/severity.mjs";
 import { renderPreviewRow } from "../js/preview.mjs";
+import { renderSeveritySummaryHtml } from "../js/renderers.mjs";
 
 const critical = getSeverity({
   level: "ERROR",
@@ -41,5 +42,22 @@ const rendered = renderPreviewRow(
 assert.match(rendered, /severity-badge severity-low/);
 assert.match(rendered, /Low/);
 assert.match(rendered, /badge-ERROR/);
+
+const counts = countSeverities([
+  { level: "ERROR", raw: "APPLICATION FAILED TO START" },
+  { level: "ERROR", raw: "java.lang.OutOfMemoryError: Java heap space" },
+  { level: "ERROR", raw: "Connection refused" },
+  { level: "ERROR", raw: "GenericError: retry failed" },
+  { level: "INFO", raw: "ok" },
+]);
+assert.deepEqual(counts, { critical: 1, high: 1, medium: 1, low: 1, total: 4 });
+
+const summaryHtml = renderSeveritySummaryHtml(counts);
+assert.match(summaryHtml, /severity-summary/);
+assert.match(summaryHtml, /Critical/);
+assert.match(summaryHtml, /High/);
+assert.match(summaryHtml, /Medium/);
+assert.match(summaryHtml, /Low/);
+assert.equal(renderSeveritySummaryHtml({ critical: 0, high: 0, medium: 0, low: 0, total: 0 }), "");
 
 console.log("Severity regression passed");

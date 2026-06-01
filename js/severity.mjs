@@ -30,6 +30,17 @@ export function getSeverity(row) {
   return SEVERITIES.low;
 }
 
+export function countSeverities(rows) {
+  const counts = { critical: 0, high: 0, medium: 0, low: 0, total: 0 };
+  for (const row of rows || []) {
+    const severity = getSeverity(row);
+    if (!severity) continue;
+    counts[severity.key] += row.count || 1;
+    counts.total += row.count || 1;
+  }
+  return counts;
+}
+
 function isStartupFailure(raw) {
   return /APPLICATION FAILED TO START/i.test(raw) || Boolean(springBootFailureSummary(raw));
 }

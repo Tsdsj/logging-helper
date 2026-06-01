@@ -368,6 +368,33 @@ button:active {
   font-size: 28px;
 }
 
+/* ---------- Severity summary ---------- */
+.severity-card .card-head {
+  margin-bottom: 10px;
+}
+
+.severity-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.severity-summary-item {
+  min-width: 118px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.severity-summary-item strong {
+  font-size: 18px;
+}
+
 /* ---------- Level chips ---------- */
 .level-chips {
   display: flex;
