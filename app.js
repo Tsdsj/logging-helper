@@ -35,6 +35,14 @@ const exportCsvBtn = document.getElementById("exportCsvBtn");
 const optMergeStack = document.getElementById("optMergeStack");
 const optCollapseDup = document.getElementById("optCollapseDup");
 
+const levelRuleList = document.getElementById("levelRuleList");
+const addLevelRuleBtn = document.getElementById("addLevelRule");
+const tsRuleInput = document.getElementById("tsRuleInput");
+const tsRuleError = document.getElementById("tsRuleError");
+const errorTypeRuleInput = document.getElementById("errorTypeRuleInput");
+const errorTypeRuleError = document.getElementById("errorTypeRuleError");
+const resetRulesBtn = document.getElementById("resetRules");
+
 const patternTableBody = document.getElementById("patternTableBody");
 const patternPanel = document.getElementById("patternPanel");
 const patternTitle = document.getElementById("patternTitle");
@@ -267,6 +275,7 @@ function runAnalysis(text, fileCount, label) {
   let note = `分析完成${suffix}：共 ${r.totalLines} 条，错误 ${r.errorLines} 条。`;
   if (r.mergedStacks) note += ` 合并 ${r.mergedStacks} 段多行堆栈。`;
   if (r.collapsedGroups) note += ` 折叠 ${r.collapsedGroups} 组重复行。`;
+  if (hasActiveRules()) note += ` 已应用自定义规则。`;
   statusEl.textContent = note;
 }
 
@@ -279,6 +288,211 @@ function runAnalysis(text, fileCount, label) {
     }
   })
 );
+
+// ---------- Custom parse rules ----------
+// User-defined regex that override the built-in level / timestamp / error-type
+// detection. Persisted to localStorage so they survive reloads.
+const CUSTOM_RULES_KEY = "lh-custom-rules";
+let customRules = loadCustomRules();
+// Compiled forms (RegExp objects) used by the detect* functions; recompiled
+// whenever the rules change. Invalid patterns are skipped (kept out of here).
+let compiledRules = { levelRules: [], tsRe: null, errorTypeRe: null };
+
+function defaultCustomRules() {
+  return { levelRules: [], tsPattern: "", errorTypePattern: "" };
+}
+
+function loadCustomRules() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CUSTOM_RULES_KEY) || "");
+    return {
+      levelRules: Array.isArray(parsed.levelRules)
+        ? parsed.levelRules
+            .filter((r) => r && typeof r.pattern === "string")
+            .map((r) => ({
+              pattern: r.pattern,
+              level: LEVELS.includes(r.level) ? r.level : "ERROR",
+            }))
+        : [],
+      tsPattern: typeof parsed.tsPattern === "string" ? parsed.tsPattern : "",
+      errorTypePattern:
+        typeof parsed.errorTypePattern === "string"
+          ? parsed.errorTypePattern
+          : "",
+    };
+  } catch {
+    return defaultCustomRules();
+  }
+}
+
+function saveCustomRules() {
+  localStorage.setItem(CUSTOM_RULES_KEY, JSON.stringify(customRules));
+}
+
+function hasActiveRules() {
+  return (
+    compiledRules.levelRules.length > 0 ||
+    compiledRules.tsRe !== null ||
+    compiledRules.errorTypeRe !== null
+  );
+}
+
+// Compile rules into RegExp objects, returning per-field error messages so the
+// UI can flag invalid patterns. Invalid patterns are simply not applied.
+function compileRules() {
+  const errors = { levels: [], ts: "", errorType: "" };
+  compiledRules.levelRules = [];
+  customRules.levelRules.forEach((r, i) => {
+    errors.levels[i] = "";
+    if (!r.pattern) return;
+    try {
+      compiledRules.levelRules.push({ re: new RegExp(r.pattern), level: r.level });
+    } catch (e) {
+      errors.levels[i] = e.message;
+    }
+  });
+
+  compiledRules.tsRe = null;
+  if (customRules.tsPattern) {
+    try {
+      compiledRules.tsRe = new RegExp(customRules.tsPattern);
+    } catch (e) {
+      errors.ts = e.message;
+    }
+  }
+
+  compiledRules.errorTypeRe = null;
+  if (customRules.errorTypePattern) {
+    try {
+      compiledRules.errorTypeRe = new RegExp(customRules.errorTypePattern);
+    } catch (e) {
+      errors.errorType = e.message;
+    }
+  }
+  return errors;
+}
+
+// Build hour/day keys from a custom timestamp regex's named capture groups.
+function customTimeKeys(line) {
+  const m = line.match(compiledRules.tsRe);
+  if (!m || !m.groups) return null;
+  const g = m.groups;
+  if (!g.h) return null; // need at least an hour to bucket
+  let date;
+  if (g.y && g.mo && g.d) {
+    date = `${g.y}-${pad2(g.mo)}-${pad2(g.d)}`;
+  } else if (g.mo && g.d) {
+    date = `${pad2(g.mo)}-${pad2(g.d)}`;
+  } else {
+    return null;
+  }
+  return { hourKey: `${date} ${pad2(g.h)}:00`, dayKey: date };
+}
+
+function pad2(v) {
+  return String(v).padStart(2, "0");
+}
+
+// ----- Custom-rules UI -----
+function renderLevelRules() {
+  if (!customRules.levelRules.length) {
+    levelRuleList.innerHTML =
+      '<p class="muted small cr-empty">尚无级别规则。</p>';
+    return;
+  }
+  levelRuleList.innerHTML = customRules.levelRules
+    .map(
+      (r, i) => `
+      <div class="cr-rule" data-idx="${i}">
+        <input type="text" class="cr-input lr-pattern" spellcheck="false"
+          value="${escapeHtml(r.pattern)}" placeholder="正则，如 \\bDENIED\\b" />
+        <select class="lr-level">
+          ${LEVELS.map(
+            (l) => `<option value="${l}"${l === r.level ? " selected" : ""}>${l}</option>`
+          ).join("")}
+        </select>
+        <button type="button" class="ghost-btn small lr-remove" title="删除规则">✕</button>
+        <p class="cr-error lr-error" hidden></p>
+      </div>`
+    )
+    .join("");
+
+  levelRuleList.querySelectorAll(".cr-rule").forEach((row) => {
+    const idx = Number(row.dataset.idx);
+    row.querySelector(".lr-pattern").addEventListener("input", (e) => {
+      customRules.levelRules[idx].pattern = e.target.value;
+      refreshRules();
+    });
+    row.querySelector(".lr-level").addEventListener("change", (e) => {
+      customRules.levelRules[idx].level = e.target.value;
+      refreshRules();
+    });
+    row.querySelector(".lr-remove").addEventListener("click", () => {
+      customRules.levelRules.splice(idx, 1);
+      renderLevelRules();
+      refreshRules();
+    });
+  });
+}
+
+// Recompile, surface validation errors, persist, and re-analyse if data loaded.
+function refreshRules() {
+  const errors = compileRules();
+
+  setFieldError(tsRuleInput, tsRuleError, errors.ts);
+  setFieldError(errorTypeRuleInput, errorTypeRuleError, errors.errorType);
+  levelRuleList.querySelectorAll(".cr-rule").forEach((row) => {
+    const idx = Number(row.dataset.idx);
+    setFieldError(
+      row.querySelector(".lr-pattern"),
+      row.querySelector(".lr-error"),
+      errors.levels[idx] || ""
+    );
+  });
+
+  saveCustomRules();
+  if (state.lastInput) {
+    const { text, fileCount, label } = state.lastInput;
+    runAnalysis(text, fileCount, label);
+  }
+}
+
+function setFieldError(inputEl, errorEl, message) {
+  const invalid = Boolean(message);
+  inputEl.classList.toggle("invalid", invalid);
+  errorEl.hidden = !invalid;
+  errorEl.textContent = invalid ? `正则无效：${message}` : "";
+}
+
+addLevelRuleBtn.addEventListener("click", () => {
+  customRules.levelRules.push({ pattern: "", level: "ERROR" });
+  renderLevelRules();
+});
+
+tsRuleInput.addEventListener("input", () => {
+  customRules.tsPattern = tsRuleInput.value;
+  refreshRules();
+});
+
+errorTypeRuleInput.addEventListener("input", () => {
+  customRules.errorTypePattern = errorTypeRuleInput.value;
+  refreshRules();
+});
+
+resetRulesBtn.addEventListener("click", () => {
+  customRules = defaultCustomRules();
+  tsRuleInput.value = "";
+  errorTypeRuleInput.value = "";
+  renderLevelRules();
+  refreshRules();
+});
+
+(function initCustomRules() {
+  tsRuleInput.value = customRules.tsPattern;
+  errorTypeRuleInput.value = customRules.errorTypePattern;
+  renderLevelRules();
+  compileRules();
+})();
 
 function parseLines(text, opts = { mergeStack: true, collapseDup: true }) {
   const lines = text.split(/\r?\n/);
@@ -323,6 +537,11 @@ function parseLines(text, opts = { mergeStack: true, collapseDup: true }) {
 }
 
 function detectLevel(line) {
+  // 0. User-defined level rules take precedence over everything else.
+  for (const { re, level } of compiledRules.levelRules) {
+    if (re.test(line)) return level;
+  }
+
   // 1. Structured level field (JSON / logfmt): most authoritative.
   const field = line.match(LEVEL_FIELD_REGEX);
   if (field) {
@@ -458,6 +677,20 @@ function sortTrend(counter) {
 }
 
 function extractErrorType(line) {
+  // 0. User-defined error-type rule: capture group "type" or group 1.
+  if (compiledRules.errorTypeRe) {
+    const m = line.match(compiledRules.errorTypeRe);
+    if (m) {
+      const captured = (m.groups && m.groups.type) || m[1] || m[0];
+      if (captured) {
+        const value = captured.trim();
+        return value.length > MAX_ERROR_TYPE_PREVIEW_LENGTH
+          ? `${value.slice(0, MAX_ERROR_TYPE_PREVIEW_LENGTH)}...`
+          : value;
+      }
+    }
+  }
+
   // JSON-style message field (winston/pino/bunyan/zap json, etc.).
   const jsonMsg = line.match(
     /["'](?:msg|message|error|err)["']\s*:\s*["']([^"']{1,80})/i
@@ -483,6 +716,12 @@ function firstToken(text) {
 }
 
 function extractTimeKeys(line) {
+  // 0. User-defined timestamp rule (named groups y/mo/d/h) takes precedence.
+  if (compiledRules.tsRe) {
+    const custom = customTimeKeys(line);
+    if (custom) return custom;
+  }
+
   // 1. ISO / common: YYYY-MM-DD[ T]HH:MM:SS (handles ms, timezone, brackets).
   let m = line.match(TS_ISO_REGEX);
   if (m) {

@@ -60,6 +60,46 @@
             <input type="checkbox" id="optCollapseDup" checked /> 折叠重复行
           </label>
         </div>
+
+        <details class="custom-rules" id="customRules">
+          <summary>自定义解析规则（高级）</summary>
+          <div class="cr-body">
+            <p class="muted small">
+              用正则覆盖默认的级别 / 时间戳 / 错误类型识别。规则保存在本地浏览器，刷新后仍保留；修改后会自动重新分析。
+            </p>
+
+            <div class="cr-section">
+              <div class="cr-head">
+                <strong>级别规则</strong>
+                <span class="muted small">行匹配该正则时判为所选级别（按从上到下顺序，优先于默认识别）</span>
+              </div>
+              <div id="levelRuleList" class="cr-list"></div>
+              <button id="addLevelRule" type="button" class="ghost-btn small">+ 添加级别规则</button>
+            </div>
+
+            <div class="cr-section">
+              <div class="cr-head">
+                <strong>时间戳规则</strong>
+                <span class="muted small">命名捕获组 <code>y</code>/<code>mo</code>/<code>d</code>/<code>h</code>（年可选），例：<code>(?&lt;mo&gt;\d{2})\/(?&lt;d&gt;\d{2}) (?&lt;h&gt;\d{2}):</code></span>
+              </div>
+              <input id="tsRuleInput" type="text" class="cr-input" spellcheck="false" placeholder="留空则使用默认时间戳识别" />
+              <p id="tsRuleError" class="cr-error" hidden></p>
+            </div>
+
+            <div class="cr-section">
+              <div class="cr-head">
+                <strong>错误类型规则</strong>
+                <span class="muted small">捕获组 1（或命名组 <code>type</code>）作为错误类型，例：<code>code=(\d+)</code></span>
+              </div>
+              <input id="errorTypeRuleInput" type="text" class="cr-input" spellcheck="false" placeholder="留空则使用默认错误类型提取" />
+              <p id="errorTypeRuleError" class="cr-error" hidden></p>
+            </div>
+
+            <div class="cr-actions">
+              <button id="resetRules" type="button" class="ghost-btn small">重置为默认</button>
+            </div>
+          </div>
+        </details>
       </section>
 
       <!-- 空状态引导 -->
