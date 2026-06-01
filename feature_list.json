@@ -114,7 +114,7 @@
       "Verify in the browser that a custom rule can produce a diagnostic suggestion for a sample error."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "custom-diagnostics-export-template",

@@ -13,10 +13,13 @@ import { escapeHtml, formatBytes } from "./js/utils.mjs";
 
 // ---------- DOM ----------
 const fileInput = document.getElementById("logFile");
+const customDiagnosticsFile = document.getElementById("customDiagnosticsFile");
 const dropZone = document.getElementById("dropZone");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const sampleBtn = document.getElementById("sampleBtn");
 const clearBtn = document.getElementById("clearBtn");
+const customDiagnosticsBtn = document.getElementById("customDiagnosticsBtn");
+const customDiagnosticsStatus = document.getElementById("customDiagnosticsStatus");
 const statusEl = document.getElementById("status");
 const fileListEl = document.getElementById("fileList");
 const emptyState = document.getElementById("emptyState");
@@ -81,6 +84,8 @@ const state = {
   expandedContexts: new Set(),
   expandedReports: new Set(),
   diagnosticRules: [],
+  builtInDiagnosticRules: [],
+  customDiagnosticRules: [],
   identifierFilter: null,
 };
 
@@ -89,7 +94,8 @@ init();
 async function init() {
   applyTheme(savedTheme());
   bindEvents();
-  state.diagnosticRules = await loadKnowledgeBase();
+  state.builtInDiagnosticRules = await loadKnowledgeBase();
+  refreshDiagnosticRules();
   if (state.result) renderPreview();
 }
 
@@ -103,6 +109,10 @@ async function loadKnowledgeBase() {
     statusEl.textContent = "知识库加载失败，日志分析仍可继续。";
     return [];
   }
+}
+
+function refreshDiagnosticRules() {
+  state.diagnosticRules = state.builtInDiagnosticRules.concat(state.customDiagnosticRules);
 }
 
 function bindEvents() {
@@ -132,6 +142,8 @@ function bindEvents() {
   analyzeBtn.addEventListener("click", analyzeSelectedFiles);
   sampleBtn.addEventListener("click", loadSample);
   clearBtn.addEventListener("click", clearAll);
+  customDiagnosticsBtn.addEventListener("click", () => customDiagnosticsFile.click());
+  customDiagnosticsFile.addEventListener("change", importCustomDiagnostics);
   sampleClose.addEventListener("click", hideSample);
   patternClose.addEventListener("click", hidePattern);
   [optMergeStack, optCollapseDup].forEach((cb) =>
@@ -245,6 +257,26 @@ function clearAll() {
   resultsEl.hidden = true;
   emptyState.hidden = false;
   statusEl.textContent = "等待上传文件";
+}
+
+async function importCustomDiagnostics() {
+  const file = customDiagnosticsFile.files?.[0];
+  if (!file) return;
+
+  try {
+    const parsed = JSON.parse(await file.text());
+    const customRules = loadDiagnosticRules(parsed);
+    state.customDiagnosticRules = customRules;
+    refreshDiagnosticRules();
+    customDiagnosticsStatus.textContent = `已导入 ${customRules.length} 条自定义规则：${file.name}`;
+    customDiagnosticsStatus.classList.remove("error");
+    if (state.result) renderPreview();
+  } catch (err) {
+    customDiagnosticsStatus.textContent = `自定义知识库无效：${err.message}`;
+    customDiagnosticsStatus.classList.add("error");
+  } finally {
+    customDiagnosticsFile.value = "";
+  }
 }
 
 function rerunAnalysis() {
