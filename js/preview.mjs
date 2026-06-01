@@ -99,7 +99,11 @@ function renderIdentifierChips(identifiers = {}) {
   return `<span class="identifier-chips">${chips
     .map(
       ([key, value]) =>
-        `<span class="identifier-chip" title="${escapeHtml(key)}">${escapeHtml(key)}=${escapeHtml(value)}</span>`
+        `<button class="identifier-chip" type="button" title="筛选 ${escapeHtml(
+          key
+        )}" data-action="filter-identifier" data-identifier-key="${escapeHtml(
+          key
+        )}" data-identifier-value="${escapeHtml(value)}">${escapeHtml(key)}=${escapeHtml(value)}</button>`
     )
     .join("")}</span>`;
 }

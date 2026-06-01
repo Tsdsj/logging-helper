@@ -98,7 +98,14 @@ export function renderLevelFilterHtml(result) {
     .join("");
 }
 
-export function renderActiveFilterHtml({ timeWindow, inactiveLevels, search, searchMode, matchCount }) {
+export function renderActiveFilterHtml({
+  timeWindow,
+  inactiveLevels,
+  search,
+  searchMode,
+  identifierFilter,
+  matchCount,
+}) {
   const chips = [];
   if (timeWindow) {
     const granLabel = timeWindow.granularity === "day" ? "按天" : "按小时";
@@ -119,6 +126,13 @@ export function renderActiveFilterHtml({ timeWindow, inactiveLevels, search, sea
       `<button class="filter-chip" data-clear="search" type="button">${modeLabel}：${escapeHtml(
         search
       )} ✕</button>`
+    );
+  }
+  if (identifierFilter) {
+    chips.push(
+      `<button class="filter-chip" data-clear="identifier" type="button">链路：${escapeHtml(
+        identifierFilter.key
+      )}=${escapeHtml(identifierFilter.value)} ✕</button>`
     );
   }
   if (!chips.length) return "";

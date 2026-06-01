@@ -4,7 +4,7 @@
 - Log intelligence planning queue initialized with `$Task_init`.
 
 ## First Pending Task
-- `trace-id-filter`
+- `diagnostic-match-explanation`
 
 ## Recommended Next Reads
 - `AGENTS.md`
@@ -25,3 +25,4 @@
 - Completed `issue-report-markdown-core`: ERROR and FATAL rows now include a Report toggle that renders a Markdown issue report with summary, diagnostic, nearby context, and raw snippet.
 - Completed `issue-report-copy-action`: Report panels now include a copy button that uses the Clipboard API and falls back to selecting report text when automatic copying is unavailable.
 - Completed `trace-id-detection`: parser rows now carry trace/request/correlation/span identifiers, and preview rows render compact identifier chips without changing summary counts.
+- Completed `trace-id-filter`: identifier chips are clickable, preview rows filter by matching trace/request/correlation/span values, and the active identifier filter appears as a removable chip that composes with search and level filters.

@@ -88,7 +88,7 @@
       "Verify in the browser that identifier filtering composes with keyword and level filters."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "diagnostic-match-explanation",

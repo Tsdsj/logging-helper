@@ -81,6 +81,7 @@ const state = {
   expandedContexts: new Set(),
   expandedReports: new Set(),
   diagnosticRules: [],
+  identifierFilter: null,
 };
 
 init();
@@ -290,6 +291,7 @@ function resetFilters() {
   state.expandedDiagnostics = new Set();
   state.expandedContexts = new Set();
   state.expandedReports = new Set();
+  state.identifierFilter = null;
   searchInput.value = "";
   clearSearchError();
 }
@@ -396,6 +398,7 @@ function renderPreview() {
     (row) =>
       state.activeLevels.has(row.level) &&
       rowInTimeWindow(row) &&
+      rowMatchesIdentifierFilter(row) &&
       (!matcher || matcher.test(row.raw))
   );
   const shown = filtered.slice(0, PREVIEW_LIMIT);
@@ -433,6 +436,12 @@ function renderPreview() {
         copyReport(Number(btn.dataset.reportLineNo));
         return;
       }
+      if (btn.dataset.action === "filter-identifier") {
+        state.identifierFilter = {
+          key: btn.dataset.identifierKey,
+          value: btn.dataset.identifierValue,
+        };
+      }
       renderPreview();
     });
   });
@@ -457,6 +466,11 @@ function rowInTimeWindow(row) {
   return key === state.timeWindow.key;
 }
 
+function rowMatchesIdentifierFilter(row) {
+  if (!state.identifierFilter) return true;
+  return row.identifiers?.[state.identifierFilter.key] === state.identifierFilter.value;
+}
+
 function renderActiveFilters(matchCount) {
   const inactiveLevels = LEVELS.concat(["OTHER"]).filter(
     (lvl) => state.result?.levels.get(lvl) && !state.activeLevels.has(lvl)
@@ -466,6 +480,7 @@ function renderActiveFilters(matchCount) {
     inactiveLevels,
     search: state.search,
     searchMode: state.searchMode,
+    identifierFilter: state.identifierFilter,
     matchCount,
   });
   activeFiltersEl.hidden = !html;
@@ -484,6 +499,7 @@ function renderPreviewMeta(shownCount, filteredCount) {
 
 function clearFilter(kind) {
   if (kind === "time" || kind === "all") state.timeWindow = null;
+  if (kind === "identifier" || kind === "all") state.identifierFilter = null;
   if (kind === "search" || kind === "all") {
     state.search = "";
     searchInput.value = "";
