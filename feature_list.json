@@ -49,7 +49,7 @@
       "Run module tests and verify the panel shows report text for the Spring Boot port failure sample."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "issue-report-copy-action",

@@ -718,7 +718,8 @@ button.filter-chip:hover {
 .dup-badge,
 .stack-badge,
 .diagnostic-badge,
-.context-badge {
+.context-badge,
+.report-badge {
   display: inline-block;
   margin-left: 6px;
   padding: 1px 7px;
@@ -749,6 +750,12 @@ button.filter-chip:hover {
   background: rgba(20, 184, 166, 0.16);
   color: #0f766e;
   border: 1px solid rgba(20, 184, 166, 0.28);
+}
+
+.report-badge {
+  background: rgba(168, 85, 247, 0.14);
+  color: #7c3aed;
+  border: 1px solid rgba(168, 85, 247, 0.28);
 }
 
 .detail-toggle {
@@ -882,6 +889,37 @@ button.filter-chip:hover {
 }
 
 .context-detail code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+}
+
+.report-detail {
+  margin: 6px 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  border-radius: 8px;
+  background: rgba(168, 85, 247, 0.08);
+}
+
+.report-detail > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.report-detail pre {
+  max-height: 300px;
+  margin: 0;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

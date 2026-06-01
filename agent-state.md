@@ -4,7 +4,7 @@
 - Log intelligence planning queue initialized with `$Task_init`.
 
 ## First Pending Task
-- `issue-report-markdown-core`
+- `issue-report-copy-action`
 
 ## Recommended Next Reads
 - `AGENTS.md`
@@ -22,3 +22,4 @@
 - Completed `root-cause-java-chain`: Java/Spring multi-cause stacks now show the deepest `Caused by` line as root cause in expanded preview details.
 - Completed `root-cause-python-traceback`: Python tracebacks now show the final exception line as root cause in the same expanded preview detail area.
 - Completed `preview-context-window`: ERROR and FATAL rows now include a Context toggle that shows up to three nearby filtered events before and after the selected row.
+- Completed `issue-report-markdown-core`: ERROR and FATAL rows now include a Report toggle that renders a Markdown issue report with summary, diagnostic, nearby context, and raw snippet.

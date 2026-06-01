@@ -13,6 +13,7 @@ node --check js/preview.mjs
 node --check js/renderers.mjs
 node --check js/utils.mjs
 node tests/diagnostics-json.test.mjs
+node tests/issue-report.test.mjs
 node tests/parse-spring-boot-failure.test.mjs
 node tests/preview-diagnostics.test.mjs
 node tests/preview-context.test.mjs

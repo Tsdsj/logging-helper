@@ -1,5 +1,6 @@
 import { ERROR_LEVELS, extractRootCause, springBootFailureSummary } from "./parser.mjs";
 import { findDiagnostic } from "./diagnostics.mjs";
+import { buildIssueReport } from "./report.mjs";
 import { escapeHtml } from "./utils.mjs";
 
 export function renderPreviewRow(row, matcher, opts = {}) {
@@ -19,6 +20,9 @@ export function renderPreviewRow(row, matcher, opts = {}) {
     : "";
   const contextButton = hasContext
     ? `<button class="context-badge detail-toggle" type="button" data-action="toggle-context" data-line-no="${key}">Context</button>`
+    : "";
+  const reportButton = ERROR_LEVELS.has(row.level)
+    ? `<button class="report-badge detail-toggle" type="button" data-action="toggle-report" data-line-no="${key}">Report</button>`
     : "";
   const detailRows = [];
 
@@ -42,11 +46,15 @@ export function renderPreviewRow(row, matcher, opts = {}) {
     detailRows.push(renderContextDetail(row, opts.contextRows));
   }
 
+  if (opts.expandedReport && ERROR_LEVELS.has(row.level)) {
+    detailRows.push(renderReportDetail(row, opts));
+  }
+
   return `
       <tr>
         <td class="num">${row.lineNo}</td>
         <td class="lvl"><span class="badge badge-${row.level}">${row.level}</span>${dup}</td>
-        <td class="line-content">${highlight(summary, matcher)}${stack}${diagnosticButton}${contextButton}</td>
+        <td class="line-content">${highlight(summary, matcher)}${stack}${diagnosticButton}${contextButton}${reportButton}</td>
       </tr>${detailRows.join("")}`;
 }
 
@@ -128,6 +136,23 @@ function renderContextDetail(row, rows) {
 
 function renderContextItem(row) {
   return `<li><span class="context-line">#${row.lineNo}</span><span class="badge badge-${row.level}">${row.level}</span><code>${escapeHtml(previewSummary(row.raw))}</code></li>`;
+}
+
+function renderReportDetail(row, opts) {
+  const report = buildIssueReport(row, {
+    diagnosticRules: opts.diagnosticRules || [],
+    contextRows: opts.contextRows || [],
+  });
+  return `
+      <tr class="preview-detail-row">
+        <td></td>
+        <td colspan="2">
+          <div class="report-detail">
+            <span>Markdown report</span>
+            <pre>${escapeHtml(report)}</pre>
+          </div>
+        </td>
+      </tr>`;
 }
 
 function renderDiagnosticList(title, items) {
