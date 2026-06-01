@@ -6,6 +6,7 @@ export function renderPreviewRow(row, matcher, opts = {}) {
   const key = row.lineNo;
   const diagnostic = findDiagnostic(row, opts.diagnosticRules || []);
   const hasStack = row.lineSpan > 1;
+  const hasContext = ERROR_LEVELS.has(row.level) && Array.isArray(opts.contextRows);
   const dup = row.count > 1 ? `<span class="dup-badge">×${row.count}</span>` : "";
   const summary = opts.expandedStack ? row.raw : previewSummary(row.raw);
   const stack = hasStack
@@ -15,6 +16,9 @@ export function renderPreviewRow(row, matcher, opts = {}) {
     : "";
   const diagnosticButton = diagnostic
     ? `<button class="diagnostic-badge detail-toggle" type="button" data-action="toggle-diagnostic" data-line-no="${key}">诊断建议</button>`
+    : "";
+  const contextButton = hasContext
+    ? `<button class="context-badge detail-toggle" type="button" data-action="toggle-context" data-line-no="${key}">Context</button>`
     : "";
   const detailRows = [];
 
@@ -34,11 +38,15 @@ export function renderPreviewRow(row, matcher, opts = {}) {
     detailRows.push(renderDiagnosticDetail(diagnostic));
   }
 
+  if (opts.expandedContext && hasContext) {
+    detailRows.push(renderContextDetail(row, opts.contextRows));
+  }
+
   return `
       <tr>
         <td class="num">${row.lineNo}</td>
         <td class="lvl"><span class="badge badge-${row.level}">${row.level}</span>${dup}</td>
-        <td class="line-content">${highlight(summary, matcher)}${stack}${diagnosticButton}</td>
+        <td class="line-content">${highlight(summary, matcher)}${stack}${diagnosticButton}${contextButton}</td>
       </tr>${detailRows.join("")}`;
 }
 
@@ -97,6 +105,29 @@ function renderDiagnosticDetail(diagnostic) {
           </div>
         </td>
       </tr>`;
+}
+
+function renderContextDetail(row, rows) {
+  const index = rows.findIndex((item) => item.lineNo === row.lineNo);
+  if (index === -1) return "";
+  const before = rows.slice(Math.max(0, index - 3), index);
+  const after = rows.slice(index + 1, index + 4);
+  const items = before.concat(after);
+  if (!items.length) return "";
+  return `
+      <tr class="preview-detail-row">
+        <td></td>
+        <td colspan="2">
+          <div class="context-detail">
+            <span>Nearby events</span>
+            <ul>${items.map(renderContextItem).join("")}</ul>
+          </div>
+        </td>
+      </tr>`;
+}
+
+function renderContextItem(row) {
+  return `<li><span class="context-line">#${row.lineNo}</span><span class="badge badge-${row.level}">${row.level}</span><code>${escapeHtml(previewSummary(row.raw))}</code></li>`;
 }
 
 function renderDiagnosticList(title, items) {

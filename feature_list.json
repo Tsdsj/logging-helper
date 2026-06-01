@@ -36,7 +36,7 @@
       "Verify in the browser that toggling context does not clear search, level, or time filters."
     ],
     "budget_minutes": 10,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "issue-report-markdown-core",

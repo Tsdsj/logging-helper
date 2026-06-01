@@ -717,7 +717,8 @@ button.filter-chip:hover {
 
 .dup-badge,
 .stack-badge,
-.diagnostic-badge {
+.diagnostic-badge,
+.context-badge {
   display: inline-block;
   margin-left: 6px;
   padding: 1px 7px;
@@ -742,6 +743,12 @@ button.filter-chip:hover {
   background: var(--primary-soft);
   color: var(--primary);
   border: 1px solid rgba(59, 130, 246, 0.28);
+}
+
+.context-badge {
+  background: rgba(20, 184, 166, 0.16);
+  color: #0f766e;
+  border: 1px solid rgba(20, 184, 166, 0.28);
 }
 
 .detail-toggle {
@@ -837,6 +844,48 @@ button.filter-chip:hover {
 
 .diagnostic-section li {
   margin: 3px 0;
+}
+
+.context-detail {
+  margin: 6px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.context-detail > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.context-detail ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.context-detail li {
+  display: grid;
+  grid-template-columns: 52px 72px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.context-line {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.context-detail code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
 }
 
 .line-content mark {

@@ -15,6 +15,7 @@ node --check js/utils.mjs
 node tests/diagnostics-json.test.mjs
 node tests/parse-spring-boot-failure.test.mjs
 node tests/preview-diagnostics.test.mjs
+node tests/preview-context.test.mjs
 node tests/root-cause.test.mjs
 node tests/app-entry-smoke.test.mjs
 

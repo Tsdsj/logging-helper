@@ -12,3 +12,4 @@
 - 2026-06-01: Added `init.ps1` as the Windows validation entry because this environment lacks a working POSIX bash runtime.
 - 2026-06-01: Completed `root-cause-java-chain`. Added Java/Spring deepest-cause extraction, rendered root cause in expanded stack details, added `tests/root-cause.test.mjs`, and verified with `powershell -ExecutionPolicy Bypass -File .\init.ps1`.
 - 2026-06-01: Completed `root-cause-python-traceback`. Extended root-cause extraction for Python tracebacks, added regression coverage in `tests/root-cause.test.mjs`, and verified with `powershell -ExecutionPolicy Bypass -File .\init.ps1`.
+- 2026-06-01: Completed `preview-context-window`. Added Context buttons for ERROR/FATAL preview rows, rendered nearby filtered events in a detail panel, added `tests/preview-context.test.mjs`, and verified with `powershell -ExecutionPolicy Bypass -File .\init.ps1`.

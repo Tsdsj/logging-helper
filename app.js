@@ -78,6 +78,7 @@ const state = {
   lastInput: null,
   expandedRows: new Set(),
   expandedDiagnostics: new Set(),
+  expandedContexts: new Set(),
   diagnosticRules: [],
 };
 
@@ -286,6 +287,7 @@ function resetFilters() {
   state.timeWindow = null;
   state.expandedRows = new Set();
   state.expandedDiagnostics = new Set();
+  state.expandedContexts = new Set();
   searchInput.value = "";
   clearSearchError();
 }
@@ -400,6 +402,8 @@ function renderPreview() {
       renderPreviewRow(row, matcher, {
         expandedStack: state.expandedRows.has(row.lineNo),
         expandedDiagnostic: state.expandedDiagnostics.has(row.lineNo),
+        expandedContext: state.expandedContexts.has(row.lineNo),
+        contextRows: filtered,
         diagnosticRules: state.diagnosticRules,
       })
     )
@@ -415,6 +419,9 @@ function renderPreview() {
       if (btn.dataset.action === "toggle-stack") toggleExpandedSet(state.expandedRows, lineNo);
       if (btn.dataset.action === "toggle-diagnostic") {
         toggleExpandedSet(state.expandedDiagnostics, lineNo);
+      }
+      if (btn.dataset.action === "toggle-context") {
+        toggleExpandedSet(state.expandedContexts, lineNo);
       }
       renderPreview();
     });

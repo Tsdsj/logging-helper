@@ -4,7 +4,7 @@
 - Log intelligence planning queue initialized with `$Task_init`.
 
 ## First Pending Task
-- `preview-context-window`
+- `issue-report-markdown-core`
 
 ## Recommended Next Reads
 - `AGENTS.md`
@@ -21,3 +21,4 @@
 - Run `powershell -ExecutionPolicy Bypass -File init.ps1` before full execution-path tasks on Windows. Use `sh init.sh` only in POSIX shells.
 - Completed `root-cause-java-chain`: Java/Spring multi-cause stacks now show the deepest `Caused by` line as root cause in expanded preview details.
 - Completed `root-cause-python-traceback`: Python tracebacks now show the final exception line as root cause in the same expanded preview detail area.
+- Completed `preview-context-window`: ERROR and FATAL rows now include a Context toggle that shows up to three nearby filtered events before and after the selected row.
