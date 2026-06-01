@@ -1,4 +1,5 @@
 import { LEVELS, parseLines, summarize } from "./js/parser.mjs";
+import { buildCustomDiagnosticsTemplateDownload } from "./js/custom-diagnostics.mjs";
 import { loadDiagnosticRules } from "./js/diagnostics.mjs";
 import { buildSearchMatcher, renderPreviewRow } from "./js/preview.mjs";
 import {
@@ -19,6 +20,7 @@ const analyzeBtn = document.getElementById("analyzeBtn");
 const sampleBtn = document.getElementById("sampleBtn");
 const clearBtn = document.getElementById("clearBtn");
 const customDiagnosticsBtn = document.getElementById("customDiagnosticsBtn");
+const customDiagnosticsTemplateBtn = document.getElementById("customDiagnosticsTemplateBtn");
 const customDiagnosticsStatus = document.getElementById("customDiagnosticsStatus");
 const statusEl = document.getElementById("status");
 const fileListEl = document.getElementById("fileList");
@@ -144,6 +146,7 @@ function bindEvents() {
   clearBtn.addEventListener("click", clearAll);
   customDiagnosticsBtn.addEventListener("click", () => customDiagnosticsFile.click());
   customDiagnosticsFile.addEventListener("change", importCustomDiagnostics);
+  customDiagnosticsTemplateBtn.addEventListener("click", exportCustomDiagnosticsTemplate);
   sampleClose.addEventListener("click", hideSample);
   patternClose.addEventListener("click", hidePattern);
   [optMergeStack, optCollapseDup].forEach((cb) =>
@@ -277,6 +280,11 @@ async function importCustomDiagnostics() {
   } finally {
     customDiagnosticsFile.value = "";
   }
+}
+
+function exportCustomDiagnosticsTemplate() {
+  const template = buildCustomDiagnosticsTemplateDownload();
+  download(template.filename, template.content, template.type);
 }
 
 function rerunAnalysis() {

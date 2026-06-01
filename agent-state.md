@@ -4,7 +4,7 @@
 - Log intelligence planning queue initialized with `$Task_init`.
 
 ## First Pending Task
-- `custom-diagnostics-export-template`
+- `severity-labels-core`
 
 ## Recommended Next Reads
 - `AGENTS.md`
@@ -28,3 +28,4 @@
 - Completed `trace-id-filter`: identifier chips are clickable, preview rows filter by matching trace/request/correlation/span values, and the active identifier filter appears as a removable chip that composes with search and level filters.
 - Completed `diagnostic-match-explanation`: diagnostic matches now retain the rule ID and matched regex source, and expanded diagnostic panels show a concise `Matched because` line without hiding the original reason or solutions.
 - Completed `custom-diagnostics-import`: users can import a local custom diagnostics JSON file for the current browser session, invalid JSON/rules show a clear error, and valid custom rules are appended after the built-in knowledge base.
+- Completed `custom-diagnostics-export-template`: the custom diagnostics toolbar now downloads a `diagnostics-custom-template.json` file generated from a pure template helper, and the generated template validates with the existing diagnostics loader.

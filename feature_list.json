@@ -127,7 +127,7 @@
       "Verify the downloaded template can be re-imported without validation errors."
     ],
     "budget_minutes": 8,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "severity-labels-core",

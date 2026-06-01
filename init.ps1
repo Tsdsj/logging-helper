@@ -2,6 +2,7 @@ $ErrorActionPreference = "Stop"
 
 node --check app.js
 node --check js/parser.mjs
+node --check js/custom-diagnostics.mjs
 node --check js/diagnostics.mjs
 node --check js/preview.mjs
 node --check js/renderers.mjs
