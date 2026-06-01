@@ -6,6 +6,8 @@ node --check js/custom-diagnostics.mjs
 node --check js/diagnostics.mjs
 node --check js/preview.mjs
 node --check js/renderers.mjs
+node --check js/patterns.mjs
+node --check js/analysis-worker.mjs
 node --check js/utils.mjs
 node --check js/severity.mjs
 node --check js/timeline.mjs
@@ -19,6 +21,8 @@ node tests/root-cause.test.mjs
 node tests/trace-id.test.mjs
 node tests/severity.test.mjs
 node tests/timeline.test.mjs
+node tests/pattern-groups.test.mjs
+node tests/renderers-chart.test.mjs
 node tests/app-entry-smoke.test.mjs
 
 Write-Host "logging-helper init checks passed."

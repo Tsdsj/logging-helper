@@ -9,11 +9,12 @@ import {
   renderFrequencyRows,
   renderLevelBreakdownHtml,
   renderLevelFilterHtml,
-  renderPatternRows,
+  renderPatternGroups,
   renderSeveritySummaryHtml,
   renderTimelineHtml,
-  renderTrendRows,
+  renderTrendChart,
 } from "./js/renderers.mjs";
+import { buildPatternGroups } from "./js/patterns.mjs";
 import { escapeHtml, formatBytes } from "./js/utils.mjs";
 
 // ---------- DOM ----------
@@ -27,6 +28,9 @@ const customDiagnosticsBtn = document.getElementById("customDiagnosticsBtn");
 const customDiagnosticsTemplateBtn = document.getElementById("customDiagnosticsTemplateBtn");
 const customDiagnosticsStatus = document.getElementById("customDiagnosticsStatus");
 const statusEl = document.getElementById("status");
+const analyzeProgress = document.getElementById("analyzeProgress");
+const analyzeProgressBar = document.getElementById("analyzeProgressBar");
+const analyzeProgressLabel = document.getElementById("analyzeProgressLabel");
 const fileListEl = document.getElementById("fileList");
 const emptyState = document.getElementById("emptyState");
 const resultsEl = document.getElementById("results");
@@ -56,12 +60,14 @@ const exportJsonBtn = document.getElementById("exportJsonBtn");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 const optMergeStack = document.getElementById("optMergeStack");
 const optCollapseDup = document.getElementById("optCollapseDup");
-const patternTableBody = document.getElementById("patternTableBody");
-const patternPanel = document.getElementById("patternPanel");
-const patternTitle = document.getElementById("patternTitle");
-const patternBody = document.getElementById("patternBody");
-const patternClose = document.getElementById("patternClose");
+const patternGroupsEl = document.getElementById("patternGroups");
 const themeToggle = document.getElementById("themeToggle");
+
+const WORKER_THRESHOLD = 200_000;
+let analysisWorker = null;
+let workerBroken = false;
+let workerJobSeq = 0;
+let pendingJob = null;
 
 const PREVIEW_LIMIT = 500;
 const SAMPLE_LOG = `2024-05-21 08:01:12 INFO  service started on port 8080
@@ -93,6 +99,7 @@ const state = {
   expandedDiagnostics: new Set(),
   expandedContexts: new Set(),
   expandedReports: new Set(),
+  expandedGroups: new Set(),
   diagnosticRules: [],
   builtInDiagnosticRules: [],
   customDiagnosticRules: [],
@@ -158,7 +165,6 @@ function bindEvents() {
   customDiagnosticsFile.addEventListener("change", importCustomDiagnostics);
   customDiagnosticsTemplateBtn.addEventListener("click", exportCustomDiagnosticsTemplate);
   sampleClose.addEventListener("click", hideSample);
-  patternClose.addEventListener("click", hidePattern);
   [optMergeStack, optCollapseDup].forEach((cb) =>
     cb.addEventListener("change", rerunAnalysis)
   );
@@ -253,15 +259,47 @@ async function analyzeSelectedFiles() {
     statusEl.textContent = "请先选择日志文件。";
     return;
   }
-  statusEl.textContent = "正在读取并分析日志...";
-  const texts = await Promise.all(Array.from(files).map((f) => f.text()));
-  runAnalysis(texts.join("\n"), files.length);
+  setAnalyzing(true);
+  statusEl.textContent = "正在读取并分析日志…";
+  try {
+    showProgress(2, "读取文件…");
+    const totalBytes = Array.from(files).reduce((sum, f) => sum + f.size, 0) || 1;
+    const texts = [];
+    let readBytes = 0;
+    for (const file of files) {
+      const text = await readFileWithProgress(file, (loaded) => {
+        const frac = Math.min((readBytes + loaded) / totalBytes, 1);
+        showProgress(2 + frac * 48, `读取文件… ${Math.round(frac * 100)}%`);
+      });
+      texts.push(text);
+      readBytes += file.size;
+    }
+    showProgress(52, "准备分析…");
+    await runAnalysis(texts.join("\n"), files.length);
+  } catch (err) {
+    statusEl.textContent = `读取或分析失败：${err.message}`;
+  } finally {
+    setAnalyzing(false);
+  }
 }
 
 function loadSample() {
   renderFileList(null);
   fileInput.value = "";
   runAnalysis(SAMPLE_LOG, 1, "示例日志");
+}
+
+function readFileWithProgress(file, onProgress) {
+  if (typeof FileReader === "undefined") return file.text();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) onProgress(e.loaded);
+    };
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(reader.error || new Error("读取文件失败"));
+    reader.readAsText(file);
+  });
 }
 
 function clearAll() {
@@ -303,14 +341,40 @@ function rerunAnalysis() {
   runAnalysis(text, fileCount, label);
 }
 
-function runAnalysis(text, fileCount, label) {
+async function runAnalysis(text, fileCount, label) {
   state.lastInput = { text, fileCount, label };
-  const rows = parseLines(text, {
+  const opts = {
     mergeStack: optMergeStack.checked,
     collapseDup: optCollapseDup.checked,
-  });
+  };
+  const useWorker = canUseWorker(text);
+  if (useWorker) showProgress(60, "解析日志…");
+
+  let analysis;
+  try {
+    analysis = useWorker
+      ? await analyzeInWorker(text, fileCount, opts)
+      : analyzeSync(text, fileCount, opts);
+  } catch (err) {
+    console.warn("Worker analysis failed; falling back to main thread.", err);
+    analysis = analyzeSync(text, fileCount, opts);
+  }
+
+  applyAnalysis(analysis.rows, analysis.result, fileCount, label);
+  if (useWorker) hideProgress();
+}
+
+function analyzeSync(text, fileCount, opts) {
+  const rows = parseLines(text, opts);
+  const result = summarize(rows, fileCount);
+  result.patternGroups = buildPatternGroups(rows);
+  return { rows, result };
+}
+
+function applyAnalysis(rows, result, fileCount, label) {
   state.rows = rows;
-  state.result = summarize(rows, fileCount);
+  state.result = result;
+  if (!state.result.patternGroups) state.result.patternGroups = buildPatternGroups(rows);
   resetFilters();
 
   emptyState.hidden = true;
@@ -325,7 +389,6 @@ function runAnalysis(text, fileCount, label) {
   renderLevelFilters();
   renderPreview();
   hideSample();
-  hidePattern();
 
   const suffix = label ? `（${label}）` : "";
   const r = state.result;
@@ -333,6 +396,107 @@ function runAnalysis(text, fileCount, label) {
   if (r.mergedStacks) note += ` 合并 ${r.mergedStacks} 段多行堆栈。`;
   if (r.collapsedGroups) note += ` 折叠 ${r.collapsedGroups} 组重复行。`;
   statusEl.textContent = note;
+}
+
+function canUseWorker(text) {
+  return (
+    typeof Worker !== "undefined" &&
+    !workerBroken &&
+    typeof text === "string" &&
+    text.length > WORKER_THRESHOLD
+  );
+}
+
+function getAnalysisWorker() {
+  if (workerBroken) return null;
+  if (analysisWorker) return analysisWorker;
+  try {
+    analysisWorker = new Worker(new URL("./js/analysis-worker.mjs", import.meta.url), {
+      type: "module",
+    });
+    analysisWorker.onmessage = handleWorkerMessage;
+    analysisWorker.onerror = handleWorkerError;
+  } catch (err) {
+    console.warn("Failed to create analysis worker.", err);
+    workerBroken = true;
+    analysisWorker = null;
+  }
+  return analysisWorker;
+}
+
+function analyzeInWorker(text, fileCount, opts) {
+  return new Promise((resolve, reject) => {
+    const worker = getAnalysisWorker();
+    if (!worker) {
+      reject(new Error("Web Worker 不可用"));
+      return;
+    }
+    const id = ++workerJobSeq;
+    pendingJob = { id, resolve, reject };
+    worker.postMessage({ id, text, fileCount, opts });
+  });
+}
+
+function handleWorkerMessage(event) {
+  const msg = event.data;
+  if (!pendingJob || msg.id !== pendingJob.id) return;
+  if (msg.type === "progress") {
+    showProgress(msg.percent, msg.phase);
+    return;
+  }
+  if (msg.type === "done") {
+    const job = pendingJob;
+    pendingJob = null;
+    job.resolve({ rows: msg.rows, result: msg.result });
+    return;
+  }
+  if (msg.type === "error") {
+    const job = pendingJob;
+    pendingJob = null;
+    job.reject(new Error(msg.message));
+  }
+}
+
+function handleWorkerError(err) {
+  workerBroken = true;
+  if (analysisWorker) {
+    try {
+      analysisWorker.terminate();
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  analysisWorker = null;
+  if (pendingJob) {
+    const job = pendingJob;
+    pendingJob = null;
+    job.reject(new Error(err?.message || "Worker error"));
+  }
+}
+
+function setAnalyzing(active) {
+  if (analyzeBtn) {
+    analyzeBtn.disabled = active;
+    analyzeBtn.classList.toggle("is-busy", active);
+  }
+  if (!active) hideProgress();
+}
+
+function showProgress(percent, label) {
+  if (!analyzeProgress) return;
+  analyzeProgress.hidden = false;
+  const clamped = Math.max(0, Math.min(100, percent));
+  if (analyzeProgressBar?.style) analyzeProgressBar.style.width = `${clamped}%`;
+  if (analyzeProgressLabel && typeof label === "string") {
+    analyzeProgressLabel.textContent = label;
+  }
+}
+
+function hideProgress() {
+  if (!analyzeProgress) return;
+  if (analyzeProgressBar?.style) analyzeProgressBar.style.width = "100%";
+  analyzeProgress.hidden = true;
+  if (analyzeProgressBar?.style) analyzeProgressBar.style.width = "0%";
 }
 
 function resetFilters() {
@@ -343,6 +507,7 @@ function resetFilters() {
   state.expandedDiagnostics = new Set();
   state.expandedContexts = new Set();
   state.expandedReports = new Set();
+  state.expandedGroups = new Set();
   state.identifierFilter = null;
   state.focusedLineNo = null;
   state.hiddenFocusedLine = false;
@@ -394,6 +559,14 @@ function showSample(type, rowEl) {
   sampleTitle.textContent = `样例：${type}`;
   sampleBody.textContent = samples.join("\n") || "（无样例）";
   samplePanel.hidden = false;
+
+  const firstSample = samples[0];
+  if (firstSample) {
+    const match = state.rows.find(
+      (r) => r.raw === firstSample || r.raw.split("\n")[0] === firstSample
+    );
+    if (match) focusTimelineLine(match.lineNo);
+  }
 }
 
 function hideSample() {
@@ -402,39 +575,28 @@ function hideSample() {
 }
 
 function renderPatterns() {
-  const patterns = state.result.patterns;
-  patternTableBody.innerHTML = renderPatternRows(patterns);
-  patternTableBody.querySelectorAll(".pattern-row").forEach((tr) => {
-    tr.addEventListener("click", () => {
-      const [tpl] = patterns[Number(tr.dataset.idx)];
-      showPattern(tpl, tr);
+  const groups = state.result.patternGroups || [];
+  patternGroupsEl.innerHTML = renderPatternGroups(groups, state.expandedGroups);
+  patternGroupsEl.querySelectorAll("[data-action='toggle-group']").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      toggleExpandedSet(state.expandedGroups, Number(btn.dataset.idx));
+      renderPatterns();
     });
   });
-}
-
-function showPattern(tpl, rowEl) {
-  const samples = state.result?.patternSamples.get(tpl) || [];
-  patternTableBody.querySelectorAll(".pattern-row").forEach((r) => r.classList.remove("active"));
-  rowEl.classList.add("active");
-  patternTitle.textContent = `样例：${tpl}`;
-  patternBody.textContent = samples.join("\n") || "（无样例）";
-  patternPanel.hidden = false;
-}
-
-function hidePattern() {
-  patternPanel.hidden = true;
-  patternTableBody.querySelectorAll(".pattern-row").forEach((r) => r.classList.remove("active"));
+  patternGroupsEl.querySelectorAll("[data-action='locate-group']").forEach((btn) => {
+    btn.addEventListener("click", () => focusTimelineLine(Number(btn.dataset.lineNo)));
+  });
 }
 
 function renderTrend() {
   const trend = state.granularity === "day" ? state.result.dayTrend : state.result.hourTrend;
   const selectedKey =
     state.timeWindow?.granularity === state.granularity ? state.timeWindow.key : null;
-  trendChart.innerHTML = renderTrendRows(trend, selectedKey);
-  trendChart.querySelectorAll(".bar-row.clickable").forEach((row) => {
-    const toggle = () => toggleTimeWindow(row.dataset.key);
-    row.addEventListener("click", toggle);
-    row.addEventListener("keydown", (e) => {
+  trendChart.innerHTML = renderTrendChart(trend, selectedKey);
+  trendChart.querySelectorAll(".bar-col.clickable").forEach((col) => {
+    const toggle = () => toggleTimeWindow(col.dataset.key);
+    col.addEventListener("click", toggle);
+    col.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         toggle();
