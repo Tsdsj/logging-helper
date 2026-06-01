@@ -4,7 +4,7 @@
 - Log intelligence planning queue initialized with `$Task_init`.
 
 ## First Pending Task
-- `README-log-intelligence-docs`
+- `e2e-log-intelligence-smoke`
 
 ## Recommended Next Reads
 - `AGENTS.md`
@@ -33,3 +33,4 @@
 - Completed `severity-summary-card`: analysis now computes severity counts from parsed rows and renders a compact severity overview above the level distribution, hidden automatically when there are no ERROR/FATAL events.
 - Completed `event-timeline-baseline`: parsed rows now feed a compact key-event timeline for WARN/ERROR/FATAL, startup failures, shutdown, and retry messages with a readable limit and omitted-count note.
 - Completed `timeline-click-filter`: timeline items now focus their matching preview row by stable line number, expand visible stack details, show a hidden-by-filters message when needed, and recover focus after filters are cleared.
+- Completed `README-log-intelligence-docs`: README now documents root cause, context, reports, trace filters, severity, timeline, local-only diagnostics/reporting, and the new helper modules.

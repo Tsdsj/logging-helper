@@ -192,7 +192,7 @@
       "Check that the README links and headings render clearly from repository root."
     ],
     "budget_minutes": 5,
-    "passes": false
+    "passes": true
   },
   {
     "task_id": "e2e-log-intelligence-smoke",
