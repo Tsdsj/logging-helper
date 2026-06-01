@@ -1,8 +1,6 @@
 import { LEVELS } from "./parser.mjs";
 import { escapeHtml } from "./utils.mjs";
 
-export const MIN_BAR_WIDTH_PERCENT = 2;
-
 export function renderLevelBreakdownHtml(result) {
   const order = LEVELS.concat(["OTHER"]);
   const total = result.totalLines || 1;
@@ -104,37 +102,147 @@ export function renderFrequencyRows(frequencies) {
     .join("");
 }
 
-export function renderPatternRows(patterns) {
-  if (!patterns || !patterns.length) {
-    return '<tr><td colspan="2" class="muted">暂无数据</td></tr>';
+export function renderPatternGroups(groups, expandedIdx = new Set()) {
+  if (!groups || !groups.length) {
+    return '<p class="muted">暂无数据</p>';
   }
-  return patterns
-    .map(
-      ([tpl, count], i) => `
-        <tr class="pattern-row" data-idx="${i}">
-          <td title="${escapeHtml(tpl)}"><code>${escapeHtml(tpl)}</code></td>
-          <td class="num">${count}</td>
-        </tr>`
-    )
-    .join("");
+  return `<div class="pattern-groups">${groups
+    .map((group, i) => renderPatternGroup(group, i, expandedIdx.has(i)))
+    .join("")}</div>`;
 }
 
-export function renderTrendRows(trend, selectedKey) {
-  if (!trend.length) return '<p class="muted">未检测到错误趋势数据</p>';
-  const maxCount = Math.max(...trend.map(([, count]) => count), 1);
-  return trend
-    .map(([label, count]) => {
-      const width = Math.max((count / maxCount) * 100, MIN_BAR_WIDTH_PERCENT);
-      const selected = label === selectedKey ? " is-selected" : "";
-      return `
-        <div class="bar-row clickable${selected}" role="button" tabindex="0"
-             data-key="${escapeHtml(label)}" title="点击按「${escapeHtml(label)}」过滤">
-          <div class="bar-label">${escapeHtml(label)}</div>
-          <div class="bar-track"><div class="bar" style="width:${width}%"></div></div>
-          <div class="bar-value">${count}</div>
-        </div>`;
+function renderPatternGroup(group, idx, expanded) {
+  const sevBadge = group.severity
+    ? `<span class="severity-badge severity-${escapeHtml(group.severity.key)}">${escapeHtml(
+        group.severity.label
+      )}</span>`
+    : "";
+  const detail = expanded ? renderPatternGroupDetail(group) : "";
+  return `
+    <div class="pattern-group${expanded ? " is-open" : ""}" data-idx="${idx}">
+      <button class="pattern-group-head" type="button" data-action="toggle-group" data-idx="${idx}"
+              aria-expanded="${expanded ? "true" : "false"}">
+        <span class="pg-caret" aria-hidden="true">${expanded ? "▾" : "▸"}</span>
+        <span class="badge badge-${escapeHtml(group.dominantLevel)} pg-level">${escapeHtml(
+          group.dominantLevel
+        )}</span>
+        ${sevBadge}
+        <code class="pg-template" title="${escapeHtml(group.template)}">${escapeHtml(
+          group.template
+        )}</code>
+        <span class="pg-spark" title="出现时间分布">${renderSparkline(group.sparkline)}</span>
+        <span class="pg-count">×${group.count}</span>
+      </button>
+      ${detail}
+    </div>`;
+}
+
+function renderPatternGroupDetail(group) {
+  const levelText = Object.entries(group.levels)
+    .sort((a, b) => b[1] - a[1])
+    .map(([lvl, count]) => `${escapeHtml(lvl)} ${count}`)
+    .join(" · ");
+  const samples = group.samples.length
+    ? escapeHtml(group.samples.join("\n"))
+    : "（无样例）";
+  return `
+    <div class="pattern-group-detail">
+      <div class="pg-meta">
+        <span>首次 ${escapeHtml(group.firstTime)}</span>
+        <span>末次 ${escapeHtml(group.lastTime)}</span>
+        <span>事件 ${group.events} 条</span>
+        <span>级别 ${levelText}</span>
+        <button class="filter-chip pg-locate" type="button" data-action="locate-group" data-line-no="${
+          group.firstLineNo
+        }">定位首次出现</button>
+      </div>
+      <pre class="pg-samples">${samples}</pre>
+    </div>`;
+}
+
+export function renderSparkline(values, { width = 84, height = 22 } = {}) {
+  if (!values || !values.length) return '<span class="pg-spark-empty">—</span>';
+  const max = Math.max(...values, 1);
+  const n = values.length;
+  const gap = n > 1 ? 2 : 0;
+  const barW = (width - gap * (n - 1)) / n;
+  const bars = values
+    .map((v, i) => {
+      const h = Math.max((v / max) * (height - 2), 1);
+      const x = i * (barW + gap);
+      const y = height - h;
+      return `<rect x="${round(x)}" y="${round(y)}" width="${round(barW)}" height="${round(
+        h
+      )}" rx="1"></rect>`;
     })
     .join("");
+  return `<svg class="sparkline" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>`;
+}
+
+export function renderTrendChart(trend, selectedKey) {
+  if (!trend.length) return '<p class="muted">未检测到错误趋势数据</p>';
+  const W = 1000;
+  const H = 220;
+  const padL = 14;
+  const padR = 14;
+  const padT = 24;
+  const padB = 66;
+  const plotH = H - padT - padB;
+  const n = trend.length;
+  const slot = (W - padL - padR) / n;
+  const barW = Math.min(slot * 0.62, 46);
+  const maxCount = Math.max(...trend.map(([, count]) => count), 1);
+  const labelStep = Math.ceil(n / 18);
+  const showValues = n <= 28;
+
+  const bars = trend
+    .map(([label, count], i) => {
+      const cx = padL + (i + 0.5) * slot;
+      const h = count > 0 ? Math.max((count / maxCount) * plotH, 3) : 0;
+      const x = cx - barW / 2;
+      const y = H - padB - h;
+      const selected = label === selectedKey ? " is-selected" : "";
+      const valueText = showValues
+        ? `<text class="bar-value-text" x="${round(cx)}" y="${round(y - 6)}" text-anchor="middle">${count}</text>`
+        : "";
+      const labelText =
+        i % labelStep === 0
+          ? `<text class="bar-label-text" x="${round(cx)}" y="${round(
+              H - padB + 12
+            )}" text-anchor="end" transform="rotate(-45 ${round(cx)} ${round(
+              H - padB + 12
+            )})">${escapeHtml(compactLabel(label))}</text>`
+          : "";
+      return `
+        <g class="bar-col clickable${selected}" role="button" tabindex="0"
+           data-key="${escapeHtml(label)}">
+          <title>${escapeHtml(label)} · ${count} 次</title>
+          <rect class="bar-col-hit" x="${round(x - (slot - barW) / 2)}" y="${padT}"
+                width="${round(slot)}" height="${plotH + 8}" fill="transparent"></rect>
+          <rect class="bar-col-rect" x="${round(x)}" y="${round(y)}" width="${round(
+            barW
+          )}" height="${round(h)}" rx="4"></rect>
+          ${valueText}
+          ${labelText}
+        </g>`;
+    })
+    .join("");
+
+  return `<svg class="trend-svg" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="错误趋势柱状图">
+      <line class="trend-axis" x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}"></line>
+      ${bars}
+    </svg>`;
+}
+
+function compactLabel(label) {
+  if (!label) return "";
+  if (label === "未识别时间") return "未识别";
+  // "2024-05-21 08:00" -> "05-21 08:00"; "2024-05-21" -> "05-21"
+  return label.replace(/^\d{4}-/, "");
+}
+
+function round(value) {
+  return Math.round(value * 100) / 100;
 }
 
 export function renderLevelFilterHtml(result) {
