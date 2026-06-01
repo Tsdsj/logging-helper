@@ -512,13 +512,88 @@ th {
   text-align: right;
 }
 
+.trend-hint {
+  margin: -2px 0 10px;
+}
+
+.bar-row.clickable {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 3px 6px;
+  margin: 0 -6px;
+  transition: background 0.12s ease;
+}
+
+.bar-row.clickable:hover {
+  background: var(--surface-2);
+}
+
+.bar-row.clickable:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 0;
+}
+
+.bar-row.is-selected {
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.bar-row.is-selected .bar-label {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.bar-row.is-selected .bar {
+  background: linear-gradient(90deg, var(--primary), #6366f1);
+}
+
 /* ---------- Filters / preview ---------- */
 .filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.search-row {
   display: flex;
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+}
+
+.search-opts {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-opts .opt.small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.search-opts .opt.small input {
+  accent-color: var(--primary);
+}
+
+.seg.small {
+  transition: opacity 0.15s ease;
+}
+
+.seg.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.search-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--lvl-error, #dc2626);
 }
 
 .search-input {
@@ -557,6 +632,38 @@ th {
 
 .level-filter input {
   accent-color: var(--primary);
+}
+
+.active-filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  font-size: 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button.filter-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.filter-chip.muted-chip {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.filter-chip.clear-all {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .preview-wrap {

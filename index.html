@@ -141,6 +141,7 @@
                 <button class="seg-btn" data-granularity="day" type="button">按天</button>
               </div>
             </div>
+            <p class="muted small trend-hint">点击某个柱条，按该时段联动过滤下方日志预览</p>
             <div id="trendChart" class="trend-chart">
               <p class="muted">暂无数据</p>
             </div>
@@ -185,13 +186,29 @@
             </div>
           </div>
           <div class="filters">
-            <input
-              id="searchInput"
-              type="search"
-              class="search-input"
-              placeholder="搜索关键字（实时过滤）"
-            />
+            <div class="search-row">
+              <input
+                id="searchInput"
+                type="search"
+                class="search-input"
+                placeholder="搜索关键字（空格分隔多个，可切换正则 / AND·OR）"
+              />
+              <div class="search-opts">
+                <label class="opt small" title="按关键字匹配，可空格分隔多个">
+                  <input type="radio" name="searchMode" value="plain" checked /> 关键字
+                </label>
+                <label class="opt small" title="把搜索框内容当作正则表达式匹配">
+                  <input type="radio" name="searchMode" value="regex" /> 正则
+                </label>
+                <div class="seg small" id="logicSeg" role="group" aria-label="多关键字逻辑" title="多个关键字之间的逻辑">
+                  <button class="seg-btn active" data-logic="and" type="button">AND</button>
+                  <button class="seg-btn" data-logic="or" type="button">OR</button>
+                </div>
+              </div>
+            </div>
+            <p id="searchError" class="search-error" hidden></p>
             <div id="levelFilters" class="level-filters"></div>
+            <div id="activeFilters" class="active-filters" hidden></div>
           </div>
           <div class="preview-wrap">
             <table class="preview-table">
