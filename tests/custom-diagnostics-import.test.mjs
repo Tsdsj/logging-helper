@@ -1,18 +1,16 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
-import {
-  buildCustomDiagnosticsTemplate,
-  buildCustomDiagnosticsTemplateDownload,
-} from "../js/custom-diagnostics.mjs";
 import { findDiagnostic, loadDiagnosticRules } from "../js/diagnostics.mjs";
 
 const indexHtml = fs.readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const appJs = fs.readFileSync(new URL("../app.js", import.meta.url), "utf8");
 
-assert.match(indexHtml, /id="customDiagnosticsFile"/);
-assert.match(indexHtml, /id="customDiagnosticsBtn"/);
-assert.match(indexHtml, /id="customDiagnosticsTemplateBtn"/);
-assert.match(indexHtml, /id="customDiagnosticsStatus"/);
+assert.doesNotMatch(indexHtml, /customDiagnostics/);
+assert.doesNotMatch(indexHtml, /导入知识库 JSON/);
+assert.doesNotMatch(indexHtml, /下载模板/);
+assert.doesNotMatch(appJs, /customDiagnostics/);
+assert.doesNotMatch(appJs, /buildCustomDiagnosticsTemplateDownload/);
 
 const customRules = loadDiagnosticRules({
   rules: [
@@ -41,18 +39,4 @@ assert.throws(
   /Invalid regular expression/
 );
 
-const template = buildCustomDiagnosticsTemplate();
-assert.equal(template.rules.length, 1);
-assert.equal(template.rules[0].id, "custom-example-rule");
-assert.ok(template.rules[0].match.any.length);
-assert.ok(template.rules[0].reason);
-assert.ok(template.rules[0].details.length);
-assert.ok(template.rules[0].solutions.length);
-assert.equal(loadDiagnosticRules(template).length, 1);
-
-const templateDownload = buildCustomDiagnosticsTemplateDownload();
-assert.equal(templateDownload.filename, "diagnostics-custom-template.json");
-assert.equal(templateDownload.type, "application/json");
-assert.equal(loadDiagnosticRules(JSON.parse(templateDownload.content)).length, 1);
-
-console.log("Custom diagnostics import regression passed");
+console.log("Custom diagnostics public surface regression passed");
