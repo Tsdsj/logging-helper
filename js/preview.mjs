@@ -285,21 +285,64 @@ function renderMarkdown(markdown) {
 }
 
 function highlight(text, matcher) {
-  const escaped = escapeHtml(text);
-  if (!matcher) return escaped;
+  if (!matcher) return escapeHtml(text);
+
+  // Find matches in the raw text BEFORE escaping
+  const matches = [];
 
   if (matcher.regex) {
     const re = new RegExp(matcher.regex.source, "gi");
-    return escaped.replace(re, (m) => (m ? `<mark>${m}</mark>` : m));
-  }
-
-  if (matcher.terms && matcher.terms.length) {
+    let match;
+    while ((match = re.exec(text)) !== null) {
+      if (!match[0]) {
+        re.lastIndex += 1;
+        continue;
+      }
+      matches.push({ start: match.index, end: match.index + match[0].length });
+    }
+  } else if (matcher.terms && matcher.terms.length) {
     const alt = matcher.terms
       .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
       .filter(Boolean)
       .join("|");
-    if (!alt) return escaped;
-    return escaped.replace(new RegExp(alt, "gi"), (m) => `<mark>${m}</mark>`);
+    if (alt) {
+      const re = new RegExp(alt, "gi");
+      let match;
+      while ((match = re.exec(text)) !== null) {
+        if (!match[0]) {
+          re.lastIndex += 1;
+          continue;
+        }
+        matches.push({ start: match.index, end: match.index + match[0].length });
+      }
+    }
   }
-  return escaped;
+
+  if (!matches.length) return escapeHtml(text);
+
+  // Sort matches by start position and merge overlapping ranges
+  matches.sort((a, b) => a.start - b.start);
+  const merged = [];
+  for (const match of matches) {
+    if (merged.length && match.start <= merged[merged.length - 1].end) {
+      merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, match.end);
+    } else {
+      merged.push(match);
+    }
+  }
+
+  // Build the highlighted HTML by escaping each segment and wrapping matches
+  let result = "";
+  let lastIndex = 0;
+  for (const match of merged) {
+    if (match.start > lastIndex) {
+      result += escapeHtml(text.slice(lastIndex, match.start));
+    }
+    result += `<mark>${escapeHtml(text.slice(match.start, match.end))}</mark>`;
+    lastIndex = match.end;
+  }
+  if (lastIndex < text.length) {
+    result += escapeHtml(text.slice(lastIndex));
+  }
+  return result;
 }

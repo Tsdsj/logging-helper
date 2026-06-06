@@ -67,6 +67,7 @@ const previewMeta = document.getElementById("previewMeta");
 const previewPager = document.getElementById("previewPager");
 const exportJsonBtn = document.getElementById("exportJsonBtn");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
+const exportPreviewCsvBtn = document.getElementById("exportPreviewCsvBtn");
 const optMergeStack = document.getElementById("optMergeStack");
 const optCollapseDup = document.getElementById("optCollapseDup");
 const patternGroupsEl = document.getElementById("patternGroups");
@@ -223,6 +224,7 @@ function bindEvents() {
   });
   exportJsonBtn.addEventListener("click", exportJson);
   exportCsvBtn.addEventListener("click", exportCsv);
+  exportPreviewCsvBtn.addEventListener("click", exportPreviewCsv);
 }
 
 function savedTheme() {
@@ -738,14 +740,7 @@ function renderLevelFilters() {
 }
 
 function renderPreview() {
-  const matcher = createMatcher();
-  const filtered = state.rows.filter(
-    (row) =>
-      state.activeLevels.has(row.level) &&
-      rowInTimeWindow(row) &&
-      rowMatchesIdentifierFilter(row) &&
-      (!matcher || matcher.test(row.raw))
-  );
+  const { filtered, matcher } = currentFilteredRows();
   const focusPage = pageForFocusedLine(filtered, state.focusedLineNo, PREVIEW_PAGE_SIZE);
   if (focusPage) state.previewPage = focusPage;
   const pageInfo = paginatePreviewRows(filtered, {
@@ -811,6 +806,18 @@ function renderPreview() {
   renderPreviewPager(pageInfo, filtered.length);
   renderTimeline(state.rows);
   scrollFocusedPreviewRow();
+}
+
+function currentFilteredRows() {
+  const matcher = createMatcher();
+  const filtered = state.rows.filter(
+    (row) =>
+      state.activeLevels.has(row.level) &&
+      rowInTimeWindow(row) &&
+      rowMatchesIdentifierFilter(row) &&
+      (!matcher || matcher.test(row.raw))
+  );
+  return { filtered, matcher };
 }
 
 function createMatcher() {
@@ -988,9 +995,30 @@ function exportCsv() {
   download("log-error-types.csv", csv, "text/csv");
 }
 
+function exportPreviewCsv() {
+  if (!state.result) return;
+  const { filtered } = currentFilteredRows();
+  const rows = [
+    ["line_no", "level", "count", "line_span", "hour", "day", "identifiers", "raw"],
+    ...filtered.map((row) => [
+      String(row.lineNo),
+      row.level,
+      String(row.count || 1),
+      String(row.lineSpan || 1),
+      row.hourKey || "",
+      row.dayKey || "",
+      JSON.stringify(row.identifiers || {}),
+      row.raw || "",
+    ]),
+  ];
+  const csv = rows.map((cols) => cols.map(csvCell).join(",")).join("\n");
+  download("log-preview-filtered.csv", csv, "text/csv");
+}
+
 function csvCell(value) {
-  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
-  return value;
+  const text = String(value ?? "");
+  if (/[",\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+  return text;
 }
 
 function download(filename, content, type) {

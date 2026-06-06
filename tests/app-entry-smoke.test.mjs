@@ -9,6 +9,8 @@ const granularityButtons = [
   fakeElement({ dataset: { granularity: "hour" } }),
   fakeElement({ dataset: { granularity: "day" } }),
 ];
+let capturedDownloadBlob = null;
+let capturedDownloadUrl = null;
 
 function fakeElement(overrides = {}) {
   const el = {
@@ -86,6 +88,16 @@ globalThis.window = {
     return { matches: false };
   },
 };
+globalThis.URL = {
+  createObjectURL(blob) {
+    capturedDownloadBlob = blob;
+    capturedDownloadUrl = "blob:preview-export";
+    return capturedDownloadUrl;
+  },
+  revokeObjectURL(url) {
+    assert.equal(url, capturedDownloadUrl);
+  },
+};
 globalThis.fetch = async () => ({
   ok: true,
   async json() {
@@ -111,6 +123,16 @@ assert.equal(
   "changing parser options after clearing should not re-analyze the previous input"
 );
 assert.equal(byId("emptyState").hidden, false);
+
+byId("sampleBtn").click();
+byId("searchInput").value = "Payment";
+byId("searchInput").listeners.input?.({});
+byId("exportPreviewCsvBtn").click();
+assert.ok(capturedDownloadBlob, "preview CSV export should create a download blob");
+const previewCsv = await capturedDownloadBlob.text();
+assert.match(previewCsv, /^line_no,level,count,line_span,hour,day,identifiers,raw/m);
+assert.match(previewCsv, /Payment/);
+assert.doesNotMatch(previewCsv, /NullPointerException/);
 
 assert.ok(true);
 console.log("App entry smoke passed");

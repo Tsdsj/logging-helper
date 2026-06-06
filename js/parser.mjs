@@ -225,7 +225,23 @@ export function extractIdentifiers(raw) {
     const match = raw.match(re);
     if (match?.[1]) ids[key] = match[1];
   }
+
+  const traceparentMatch = raw.match(
+    /["']?traceparent["']?\s*[:=]\s*["']?([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})/i
+  );
+  if (traceparentMatch) {
+    const [, version, traceId, spanId, flags] = traceparentMatch;
+    if (!isAllZeroHex(traceId) && !isAllZeroHex(spanId)) {
+      ids.traceparent = `${version}-${traceId}-${spanId}-${flags}`;
+      if (!ids.traceId) ids.traceId = traceId;
+      if (!ids.spanId) ids.spanId = spanId;
+    }
+  }
   return ids;
+}
+
+function isAllZeroHex(value) {
+  return /^0+$/i.test(value);
 }
 
 function pythonTracebackCause(raw) {

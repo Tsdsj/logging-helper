@@ -18,6 +18,7 @@ node tests/custom-diagnostics-import.test.mjs
 node tests/issue-report.test.mjs
 node tests/parse-spring-boot-failure.test.mjs
 node tests/preview-diagnostics.test.mjs
+node tests/preview-highlight.test.mjs
 node tests/preview-context.test.mjs
 node tests/root-cause.test.mjs
 node tests/trace-id.test.mjs
