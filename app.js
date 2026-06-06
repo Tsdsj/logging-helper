@@ -69,6 +69,7 @@ const WORKER_THRESHOLD = 200_000;
 let analysisWorker = null;
 let workerBroken = false;
 let workerJobSeq = 0;
+let activeAnalysisId = 0;
 let pendingJob = null;
 
 const PREVIEW_LIMIT = 500;
@@ -165,7 +166,9 @@ function bindEvents() {
   dropZone.addEventListener("drop", handleDrop);
   fileInput.addEventListener("change", handleFileChange);
   analyzeBtn.addEventListener("click", analyzeSelectedFiles);
-  sampleBtn.addEventListener("click", loadSample);
+  sampleBtn.addEventListener("click", () => {
+    void loadSample();
+  });
   clearBtn.addEventListener("click", clearAll);
   customDiagnosticsBtn.addEventListener("click", () => customDiagnosticsFile.click());
   customDiagnosticsFile.addEventListener("change", importCustomDiagnostics);
@@ -265,35 +268,39 @@ async function analyzeSelectedFiles() {
     statusEl.textContent = "请先选择日志文件。";
     return;
   }
+  const analysisId = beginAnalysisRequest();
   setAnalyzing(true);
   statusEl.textContent = "正在读取并分析日志…";
   try {
-    showProgress(2, "读取文件…");
+    showProgressForAnalysis(analysisId, 2, "读取文件…");
     const totalBytes = Array.from(files).reduce((sum, f) => sum + f.size, 0) || 1;
     const texts = [];
     let readBytes = 0;
     for (const file of files) {
       const text = await readFileWithProgress(file, (loaded) => {
         const frac = Math.min((readBytes + loaded) / totalBytes, 1);
-        showProgress(2 + frac * 48, `读取文件… ${Math.round(frac * 100)}%`);
+        showProgressForAnalysis(analysisId, 2 + frac * 48, `读取文件… ${Math.round(frac * 100)}%`);
       });
+      if (!isCurrentAnalysis(analysisId)) return;
       texts.push(text);
       readBytes += file.size;
     }
-    showProgress(52, "准备分析…");
-    await runAnalysis(texts.join("\n"), files.length);
+    showProgressForAnalysis(analysisId, 52, "准备分析…");
+    await runAnalysis(texts.join("\n"), files.length, undefined, analysisId);
   } catch (err) {
-    statusEl.textContent = `读取或分析失败：${err.message}`;
+    if (isCurrentAnalysis(analysisId)) {
+      statusEl.textContent = `读取或分析失败：${err.message}`;
+    }
   } finally {
-    setAnalyzing(false);
+    finishAnalysisRequest(analysisId);
   }
 }
 
-function loadSample() {
+async function loadSample() {
   const selected = selectedSampleLog();
   renderFileList(null);
   fileInput.value = "";
-  runAnalysis(selected.content, selected.fileCount, selected.label);
+  await startAnalysis(selected.content, selected.fileCount, selected.label);
 }
 
 function selectedSampleLog() {
@@ -324,6 +331,8 @@ function readFileWithProgress(file, onProgress) {
 }
 
 function clearAll() {
+  beginAnalysisRequest();
+  setAnalyzing(false);
   fileInput.value = "";
   renderFileList(null);
   state.rows = [];
@@ -380,30 +389,46 @@ function exportCustomDiagnosticsTemplate() {
 function rerunAnalysis() {
   if (!state.lastInput) return;
   const { text, fileCount, label } = state.lastInput;
-  runAnalysis(text, fileCount, label);
+  void startAnalysis(text, fileCount, label);
 }
 
-async function runAnalysis(text, fileCount, label) {
+async function startAnalysis(text, fileCount, label) {
+  const analysisId = beginAnalysisRequest();
+  setAnalyzing(true);
+  try {
+    await runAnalysis(text, fileCount, label, analysisId);
+  } catch (err) {
+    if (isCurrentAnalysis(analysisId)) {
+      statusEl.textContent = `分析失败：${err.message}`;
+    }
+  } finally {
+    finishAnalysisRequest(analysisId);
+  }
+}
+
+async function runAnalysis(text, fileCount, label, analysisId = beginAnalysisRequest()) {
   state.lastInput = { text, fileCount, label };
   const opts = {
     mergeStack: optMergeStack.checked,
     collapseDup: optCollapseDup.checked,
   };
   const useWorker = canUseWorker(text);
-  if (useWorker) showProgress(60, "解析日志…");
+  if (useWorker) showProgressForAnalysis(analysisId, 60, "解析日志…");
 
   let analysis;
   try {
     analysis = useWorker
-      ? await analyzeInWorker(text, fileCount, opts)
+      ? await analyzeInWorker(text, fileCount, opts, analysisId)
       : analyzeSync(text, fileCount, opts);
   } catch (err) {
+    if (!isCurrentAnalysis(analysisId)) return;
     console.warn("Worker analysis failed; falling back to main thread.", err);
     analysis = analyzeSync(text, fileCount, opts);
   }
 
+  if (!isCurrentAnalysis(analysisId)) return;
   applyAnalysis(analysis.rows, analysis.result, fileCount, label);
-  if (useWorker) hideProgress();
+  if (useWorker && isCurrentAnalysis(analysisId)) hideProgress();
 }
 
 function analyzeSync(text, fileCount, opts) {
@@ -466,7 +491,7 @@ function getAnalysisWorker() {
   return analysisWorker;
 }
 
-function analyzeInWorker(text, fileCount, opts) {
+function analyzeInWorker(text, fileCount, opts, analysisId) {
   return new Promise((resolve, reject) => {
     const worker = getAnalysisWorker();
     if (!worker) {
@@ -474,7 +499,7 @@ function analyzeInWorker(text, fileCount, opts) {
       return;
     }
     const id = ++workerJobSeq;
-    pendingJob = { id, resolve, reject };
+    pendingJob = { id, analysisId, resolve, reject };
     worker.postMessage({ id, text, fileCount, opts });
   });
 }
@@ -482,8 +507,9 @@ function analyzeInWorker(text, fileCount, opts) {
 function handleWorkerMessage(event) {
   const msg = event.data;
   if (!pendingJob || msg.id !== pendingJob.id) return;
+  if (!isCurrentAnalysis(pendingJob.analysisId)) return;
   if (msg.type === "progress") {
-    showProgress(msg.percent, msg.phase);
+    showProgressForAnalysis(pendingJob.analysisId, msg.percent, msg.phase);
     return;
   }
   if (msg.type === "done") {
@@ -516,6 +542,27 @@ function handleWorkerError(err) {
   }
 }
 
+function beginAnalysisRequest() {
+  activeAnalysisId += 1;
+  supersedePendingWorkerJob();
+  return activeAnalysisId;
+}
+
+function isCurrentAnalysis(analysisId) {
+  return analysisId === activeAnalysisId;
+}
+
+function finishAnalysisRequest(analysisId) {
+  if (isCurrentAnalysis(analysisId)) setAnalyzing(false);
+}
+
+function supersedePendingWorkerJob() {
+  if (!pendingJob) return;
+  const job = pendingJob;
+  pendingJob = null;
+  job.reject(new Error("Analysis superseded"));
+}
+
 function setAnalyzing(active) {
   if (analyzeBtn) {
     analyzeBtn.disabled = active;
@@ -532,6 +579,11 @@ function showProgress(percent, label) {
   if (analyzeProgressLabel && typeof label === "string") {
     analyzeProgressLabel.textContent = label;
   }
+}
+
+function showProgressForAnalysis(analysisId, percent, label) {
+  if (!isCurrentAnalysis(analysisId)) return;
+  showProgress(percent, label);
 }
 
 function hideProgress() {
