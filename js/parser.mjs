@@ -98,11 +98,12 @@ export function summarize(rows, fileCount) {
 
   for (const row of rows) {
     const n = row.count;
-    totalLines += n;
+    const physicalLines = (row.lineSpan || 1) * n;
+    totalLines += physicalLines;
     if (row.merged) mergedStacks += 1;
     if (row.count > 1) collapsedGroups += 1;
 
-    levelCounter.set(row.level, (levelCounter.get(row.level) || 0) + n);
+    levelCounter.set(row.level, (levelCounter.get(row.level) || 0) + physicalLines);
 
     const tpl = templateOf(row.raw);
     patternCounter.set(tpl, (patternCounter.get(tpl) || 0) + n);
@@ -112,7 +113,7 @@ export function summarize(rows, fileCount) {
 
     if (!ERROR_LEVELS.has(row.level)) continue;
 
-    errorLines += n;
+    errorLines += physicalLines;
     const type = extractErrorType(row.raw);
     errorTypeCounter.set(type, (errorTypeCounter.get(type) || 0) + n);
     if (!errorSamples.has(type)) errorSamples.set(type, []);

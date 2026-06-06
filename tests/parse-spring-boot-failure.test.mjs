@@ -27,14 +27,24 @@ const unmergedRows = parseLines(springBootPortFailure, {
   mergeStack: false,
   collapseDup: true,
 });
+const physicalNonBlankLines = springBootPortFailure
+  .split(/\r?\n/)
+  .filter((line) => line.trim()).length;
 
 assert.equal(rows.length, 3);
 assert.ok(failure, "Spring Boot failure analysis block should be present");
 assert.equal(failure.level, "ERROR");
 assert.equal(failure.lineSpan, 7);
 assert.match(failure.raw, /Description:\nWeb server failed to start/);
-assert.equal(result.errorLines, 1);
+assert.equal(result.totalLines, physicalNonBlankLines);
+assert.equal(result.levels.get("ERROR"), failure.lineSpan);
+assert.equal(result.errorLines, failure.lineSpan);
 assert.equal(result.frequencies[0][0], "PortAlreadyInUse");
+assert.equal(
+  result.frequencies[0][1],
+  1,
+  "error type frequency should count the error event, not every merged stack line"
+);
 assert.equal(
   templateOf(failure.raw),
   "Web server failed to start. Port <NUM> was already in use."

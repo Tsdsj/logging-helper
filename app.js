@@ -326,6 +326,27 @@ function readFileWithProgress(file, onProgress) {
 function clearAll() {
   fileInput.value = "";
   renderFileList(null);
+  state.rows = [];
+  state.result = null;
+  state.lastInput = null;
+  resetFilters();
+  totalLinesEl.textContent = "0";
+  errorLinesEl.textContent = "0";
+  errorRateEl.textContent = "0%";
+  fileCountEl.textContent = "0";
+  severitySummaryCard.hidden = true;
+  severitySummaryEl.innerHTML = "";
+  timelineCard.hidden = true;
+  eventTimelineEl.innerHTML = "";
+  levelBreakdownEl.innerHTML = "";
+  freqTableBody.innerHTML = '<tr><td colspan="2" class="muted">暂无数据</td></tr>';
+  trendChart.innerHTML = '<p class="muted">暂无数据</p>';
+  patternGroupsEl.innerHTML = '<p class="muted">暂无数据</p>';
+  previewBody.innerHTML = "";
+  previewMeta.textContent = "";
+  activeFiltersEl.hidden = true;
+  activeFiltersEl.innerHTML = "";
+  hideSample();
   resultsEl.hidden = true;
   emptyState.hidden = false;
   statusEl.textContent = "等待上传文件";
