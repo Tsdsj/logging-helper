@@ -3,12 +3,18 @@ import { buildCustomDiagnosticsTemplateDownload } from "./js/custom-diagnostics.
 import { loadDiagnosticRules } from "./js/diagnostics.mjs";
 import { countSeverities } from "./js/severity.mjs";
 import { selectTimelineEvents } from "./js/timeline.mjs";
-import { buildSearchMatcher, renderPreviewRow } from "./js/preview.mjs";
+import {
+  buildSearchMatcher,
+  pageForFocusedLine,
+  paginatePreviewRows,
+  renderPreviewRow,
+} from "./js/preview.mjs";
 import {
   renderActiveFilterHtml,
   renderFrequencyRows,
   renderLevelBreakdownHtml,
   renderLevelFilterHtml,
+  renderPreviewPagerHtml,
   renderPatternGroups,
   renderSeveritySummaryHtml,
   renderTimelineHtml,
@@ -58,6 +64,7 @@ const levelFiltersEl = document.getElementById("levelFilters");
 const activeFiltersEl = document.getElementById("activeFilters");
 const previewBody = document.getElementById("previewBody");
 const previewMeta = document.getElementById("previewMeta");
+const previewPager = document.getElementById("previewPager");
 const exportJsonBtn = document.getElementById("exportJsonBtn");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 const optMergeStack = document.getElementById("optMergeStack");
@@ -72,7 +79,7 @@ let workerJobSeq = 0;
 let activeAnalysisId = 0;
 let pendingJob = null;
 
-const PREVIEW_LIMIT = 500;
+const PREVIEW_PAGE_SIZE = 500;
 
 const state = {
   rows: [],
@@ -95,6 +102,7 @@ const state = {
   identifierFilter: null,
   focusedLineNo: null,
   hiddenFocusedLine: false,
+  previewPage: 1,
 };
 
 init();
@@ -179,6 +187,7 @@ function bindEvents() {
   );
   searchInput.addEventListener("input", () => {
     state.search = searchInput.value.trim();
+    resetPreviewPage();
     renderPreview();
   });
   document.querySelectorAll('input[name="searchMode"]').forEach((radio) => {
@@ -186,6 +195,7 @@ function bindEvents() {
       if (!radio.checked) return;
       state.searchMode = radio.value;
       logicSeg.classList.toggle("disabled", state.searchMode !== "plain");
+      resetPreviewPage();
       renderPreview();
     });
   });
@@ -194,6 +204,7 @@ function bindEvents() {
       logicSeg.querySelectorAll(".seg-btn").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       state.searchLogic = btn.dataset.logic;
+      resetPreviewPage();
       renderPreview();
     });
   });
@@ -205,6 +216,7 @@ function bindEvents() {
       btn.classList.add("active");
       state.granularity = btn.dataset.granularity;
       if (state.timeWindow?.granularity !== state.granularity) state.timeWindow = null;
+      resetPreviewPage();
       renderTrend();
       renderPreview();
     });
@@ -353,6 +365,7 @@ function clearAll() {
   patternGroupsEl.innerHTML = '<p class="muted">暂无数据</p>';
   previewBody.innerHTML = "";
   previewMeta.textContent = "";
+  previewPager.innerHTML = "";
   activeFiltersEl.hidden = true;
   activeFiltersEl.innerHTML = "";
   hideSample();
@@ -605,6 +618,7 @@ function resetFilters() {
   state.identifierFilter = null;
   state.focusedLineNo = null;
   state.hiddenFocusedLine = false;
+  state.previewPage = 1;
   searchInput.value = "";
   clearSearchError();
 }
@@ -706,6 +720,7 @@ function toggleTimeWindow(key) {
   } else {
     state.timeWindow = { key, granularity: gran };
   }
+  resetPreviewPage();
   renderTrend();
   renderPreview();
 }
@@ -716,6 +731,7 @@ function renderLevelFilters() {
     cb.addEventListener("change", () => {
       if (cb.checked) state.activeLevels.add(cb.value);
       else state.activeLevels.delete(cb.value);
+      resetPreviewPage();
       renderPreview();
     });
   });
@@ -730,9 +746,16 @@ function renderPreview() {
       rowMatchesIdentifierFilter(row) &&
       (!matcher || matcher.test(row.raw))
   );
-  const shown = filtered.slice(0, PREVIEW_LIMIT);
+  const focusPage = pageForFocusedLine(filtered, state.focusedLineNo, PREVIEW_PAGE_SIZE);
+  if (focusPage) state.previewPage = focusPage;
+  const pageInfo = paginatePreviewRows(filtered, {
+    page: state.previewPage,
+    pageSize: PREVIEW_PAGE_SIZE,
+  });
+  state.previewPage = pageInfo.page;
+  const shown = pageInfo.shown;
   state.hiddenFocusedLine = Boolean(
-    state.focusedLineNo && !shown.some((row) => row.lineNo === state.focusedLineNo)
+    state.focusedLineNo && !filtered.some((row) => row.lineNo === state.focusedLineNo)
   );
   if (state.focusedLineNo && !state.hiddenFocusedLine) {
     state.expandedRows.add(state.focusedLineNo);
@@ -777,13 +800,15 @@ function renderPreview() {
           key: btn.dataset.identifierKey,
           value: btn.dataset.identifierValue,
         };
+        resetPreviewPage();
       }
       renderPreview();
     });
   });
 
   renderActiveFilters(filtered.length);
-  renderPreviewMeta(shown.length, filtered.length);
+  renderPreviewMeta(shown.length, filtered.length, pageInfo);
+  renderPreviewPager(pageInfo, filtered.length);
   renderTimeline(state.rows);
   scrollFocusedPreviewRow();
 }
@@ -828,11 +853,30 @@ function renderActiveFilters(matchCount) {
   });
 }
 
-function renderPreviewMeta(shownCount, filteredCount) {
+function renderPreviewMeta(shownCount, filteredCount, pageInfo) {
   let meta = `显示 ${shownCount} / ${filteredCount} 条`;
-  if (filteredCount > PREVIEW_LIMIT) meta += `（仅预览前 ${PREVIEW_LIMIT} 条）`;
+  if (filteredCount > PREVIEW_PAGE_SIZE && shownCount) {
+    meta += `（第 ${pageInfo.startIndex + 1}-${pageInfo.endIndex} 条）`;
+  }
   if (state.result) meta += ` · 共 ${state.result.events} 条事件 / ${state.result.totalLines} 行`;
   previewMeta.textContent = meta;
+}
+
+function renderPreviewPager(pageInfo, filteredCount) {
+  previewPager.innerHTML = renderPreviewPagerHtml({
+    page: pageInfo.page,
+    pageCount: pageInfo.pageCount,
+    filteredCount,
+  });
+  previewPager.querySelectorAll("[data-preview-page]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.disabled) return;
+      state.previewPage += btn.dataset.previewPage === "next" ? 1 : -1;
+      state.focusedLineNo = null;
+      state.hiddenFocusedLine = false;
+      renderPreview();
+    });
+  });
 }
 
 function focusTimelineLine(lineNo) {
@@ -858,8 +902,13 @@ function clearFilter(kind) {
     state.activeLevels = new Set(LEVELS.concat(["OTHER"]));
     levelFiltersEl.querySelectorAll("input").forEach((cb) => (cb.checked = true));
   }
+  resetPreviewPage();
   renderTrend();
   renderPreview();
+}
+
+function resetPreviewPage() {
+  state.previewPage = 1;
 }
 
 function showSearchError(msg) {

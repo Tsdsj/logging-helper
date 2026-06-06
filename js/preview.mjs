@@ -4,6 +4,28 @@ import { buildIssueReport } from "./report.mjs";
 import { getSeverity } from "./severity.mjs";
 import { escapeHtml } from "./utils.mjs";
 
+export function paginatePreviewRows(rows, { page = 1, pageSize = 500 } = {}) {
+  const safePageSize = Math.max(1, Number(pageSize) || 500);
+  const pageCount = Math.max(1, Math.ceil((rows?.length || 0) / safePageSize));
+  const safePage = Math.min(Math.max(1, Number(page) || 1), pageCount);
+  const startIndex = (safePage - 1) * safePageSize;
+  const endIndex = Math.min(startIndex + safePageSize, rows?.length || 0);
+  return {
+    page: safePage,
+    pageCount,
+    startIndex,
+    endIndex,
+    shown: (rows || []).slice(startIndex, endIndex),
+  };
+}
+
+export function pageForFocusedLine(rows, lineNo, pageSize = 500) {
+  const index = (rows || []).findIndex((row) => row.lineNo === lineNo);
+  if (index === -1) return null;
+  const safePageSize = Math.max(1, Number(pageSize) || 500);
+  return Math.floor(index / safePageSize) + 1;
+}
+
 export function renderPreviewRow(row, matcher, opts = {}) {
   const key = row.lineNo;
   const diagnostic = findDiagnostic(row, opts.diagnosticRules || []);

@@ -951,6 +951,30 @@ button.filter-chip:hover {
   border-radius: var(--radius-sm);
 }
 
+.preview-pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.preview-pager-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.preview-page-label {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.preview-pager .ghost-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .preview-table th {
   position: sticky;
   top: 0;

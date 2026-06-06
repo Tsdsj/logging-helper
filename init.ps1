@@ -25,6 +25,7 @@ node tests/severity.test.mjs
 node tests/timeline.test.mjs
 node tests/pattern-groups.test.mjs
 node tests/renderers-chart.test.mjs
+node tests/preview-pagination.test.mjs
 node tests/sample-logs.test.mjs
 node tests/app-entry-smoke.test.mjs
 node tests/app-worker-state.test.mjs

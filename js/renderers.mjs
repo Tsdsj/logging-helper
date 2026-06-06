@@ -74,6 +74,25 @@ export function renderTimelineHtml(timeline) {
     }`;
 }
 
+export function renderPreviewPagerHtml({ page, pageCount, filteredCount }) {
+  if (pageCount <= 1) return "";
+  const safePage = Number.isFinite(page) ? page : 1;
+  const safePageCount = Number.isFinite(pageCount) ? pageCount : 1;
+  const safeFilteredCount = Number.isFinite(filteredCount) ? filteredCount : 0;
+  return `
+    <div class="preview-pager-controls" role="navigation" aria-label="日志预览分页">
+      <button class="ghost-btn small" type="button" data-preview-page="prev"${
+        safePage <= 1 ? " disabled" : ""
+      }>上一页</button>
+      <span class="preview-page-label">第 ${escapeHtml(String(safePage))} / ${escapeHtml(
+        String(safePageCount)
+      )} 页 · ${escapeHtml(String(safeFilteredCount))} 条</span>
+      <button class="ghost-btn small" type="button" data-preview-page="next"${
+        safePage >= safePageCount ? " disabled" : ""
+      }>下一页</button>
+    </div>`;
+}
+
 export function levelColor(lvl) {
   const map = {
     TRACE: "var(--lvl-trace)",
