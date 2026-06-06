@@ -18,9 +18,9 @@ assert.equal(timeline.items.length, 3);
 assert.equal(timeline.omittedCount, 2);
 assert.deepEqual(
   timeline.items.map((item) => item.lineNo),
-  [2, 3, 4]
+  [2, 4, 6]
 );
-assert.match(timeline.items[2].message, /Web server failed to start/);
+assert.match(timeline.items[1].message, /Web server failed to start/);
 
 const html = renderTimelineHtml(timeline);
 assert.match(html, /event-timeline/);
@@ -33,5 +33,33 @@ const focusedHtml = renderTimelineHtml({ ...timeline, focusedLineNo: 4, hiddenFo
 assert.match(focusedHtml, /is-focused/);
 assert.match(focusedHtml, /当前筛选条件隐藏了 #4/);
 assert.equal(renderTimelineHtml({ items: [], omittedCount: 0 }), "");
+
+const crowdedRows = [
+  ...Array.from({ length: 20 }, (_, i) => ({
+    lineNo: i + 1,
+    level: "WARN",
+    raw: `2026-06-01 10:00:${String(i).padStart(2, "0")} WARN retry attempt ${i + 1}`,
+    hourKey: "2026-06-01 10:00",
+  })),
+  {
+    lineNo: 21,
+    level: "FATAL",
+    raw: "2026-06-01 10:01:00 FATAL payment worker crashed",
+    hourKey: "2026-06-01 10:01",
+  },
+];
+
+const prioritizedTimeline = selectTimelineEvents(crowdedRows, 12);
+assert.equal(prioritizedTimeline.items.length, 12);
+assert.equal(prioritizedTimeline.omittedCount, 9);
+assert.ok(
+  prioritizedTimeline.items.some((item) => item.lineNo === 21 && item.level === "FATAL"),
+  "timeline limit must keep later FATAL events ahead of earlier low-priority WARNs"
+);
+assert.deepEqual(
+  prioritizedTimeline.items.map((item) => item.lineNo),
+  prioritizedTimeline.items.map((item) => item.lineNo).toSorted((a, b) => a - b),
+  "selected timeline items should render in chronological line order"
+);
 
 console.log("Timeline regression passed");
